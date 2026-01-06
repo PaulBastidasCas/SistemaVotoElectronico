@@ -24,14 +24,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Administrador>>> GetAdministrador()
         {
-            return await _context.Administrador.ToListAsync();
+            return await _context.Administradores.ToListAsync();
         }
 
         // GET: api/Administradores/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Administrador>> GetAdministrador(int id)
         {
-            var administrador = await _context.Administrador.FindAsync(id);
+            var administrador = await _context.Administradores.FindAsync(id);
 
             if (administrador == null)
             {
@@ -77,7 +77,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Administrador>> PostAdministrador(Administrador administrador)
         {
-            _context.Administrador.Add(administrador);
+            _context.Administradores.Add(administrador);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAdministrador", new { id = administrador.Id }, administrador);
@@ -87,13 +87,13 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdministrador(int id)
         {
-            var administrador = await _context.Administrador.FindAsync(id);
+            var administrador = await _context.Administradores.FindAsync(id);
             if (administrador == null)
             {
                 return NotFound();
             }
 
-            _context.Administrador.Remove(administrador);
+            _context.Administradores.Remove(administrador);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private bool AdministradorExists(int id)
         {
-            return _context.Administrador.Any(e => e.Id == id);
+            return _context.Administradores.Any(e => e.Id == id);
         }
     }
 }

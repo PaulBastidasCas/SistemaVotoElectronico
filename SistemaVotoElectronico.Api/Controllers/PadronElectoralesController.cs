@@ -24,14 +24,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PadronElectoral>>> GetPadronElectoral()
         {
-            return await _context.PadronElectoral.ToListAsync();
+            return await _context.PadronElectorales.ToListAsync();
         }
 
         // GET: api/PadronElectorales/5
         [HttpGet("{id}")]
         public async Task<ActionResult<PadronElectoral>> GetPadronElectoral(int id)
         {
-            var padronElectoral = await _context.PadronElectoral.FindAsync(id);
+            var padronElectoral = await _context.PadronElectorales.FindAsync(id);
 
             if (padronElectoral == null)
             {
@@ -77,7 +77,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<PadronElectoral>> PostPadronElectoral(PadronElectoral padronElectoral)
         {
-            _context.PadronElectoral.Add(padronElectoral);
+            _context.PadronElectorales.Add(padronElectoral);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetPadronElectoral", new { id = padronElectoral.Id }, padronElectoral);
@@ -87,13 +87,13 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePadronElectoral(int id)
         {
-            var padronElectoral = await _context.PadronElectoral.FindAsync(id);
+            var padronElectoral = await _context.PadronElectorales.FindAsync(id);
             if (padronElectoral == null)
             {
                 return NotFound();
             }
 
-            _context.PadronElectoral.Remove(padronElectoral);
+            _context.PadronElectorales.Remove(padronElectoral);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private bool PadronElectoralExists(int id)
         {
-            return _context.PadronElectoral.Any(e => e.Id == id);
+            return _context.PadronElectorales.Any(e => e.Id == id);
         }
     }
 }

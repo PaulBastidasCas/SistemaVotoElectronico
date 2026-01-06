@@ -12,17 +12,17 @@ using SistemaVotoElectronico.Modelos;
         {
         }
 
-        public DbSet<SistemaVotoElectronico.Modelos.Administrador> Administrador { get; set; } = default!;
+        public DbSet<SistemaVotoElectronico.Modelos.Administrador> Administradores { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.Candidato> Candidato { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.Candidato> Candidatos { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.Eleccion> Eleccion { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.Eleccion> Elecciones { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.ListaElectoral> ListaElectoral { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.ListaElectoral> ListaElectorales { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.PadronElectoral> PadronElectoral { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.PadronElectoral> PadronElectorales { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.Votante> Votante { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.Votante> Votantes { get; set; } = default!;
 
-public DbSet<SistemaVotoElectronico.Modelos.Voto> Voto { get; set; } = default!;
+public DbSet<SistemaVotoElectronico.Modelos.Voto> Votos { get; set; } = default!;
     }

@@ -24,14 +24,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ListaElectoral>>> GetListaElectoral()
         {
-            return await _context.ListaElectoral.ToListAsync();
+            return await _context.ListaElectorales.ToListAsync();
         }
 
         // GET: api/ListaElectorales/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ListaElectoral>> GetListaElectoral(int id)
         {
-            var listaElectoral = await _context.ListaElectoral.FindAsync(id);
+            var listaElectoral = await _context.ListaElectorales.FindAsync(id);
 
             if (listaElectoral == null)
             {
@@ -77,7 +77,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<ListaElectoral>> PostListaElectoral(ListaElectoral listaElectoral)
         {
-            _context.ListaElectoral.Add(listaElectoral);
+            _context.ListaElectorales.Add(listaElectoral);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetListaElectoral", new { id = listaElectoral.Id }, listaElectoral);
@@ -87,13 +87,13 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteListaElectoral(int id)
         {
-            var listaElectoral = await _context.ListaElectoral.FindAsync(id);
+            var listaElectoral = await _context.ListaElectorales.FindAsync(id);
             if (listaElectoral == null)
             {
                 return NotFound();
             }
 
-            _context.ListaElectoral.Remove(listaElectoral);
+            _context.ListaElectorales.Remove(listaElectoral);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private bool ListaElectoralExists(int id)
         {
-            return _context.ListaElectoral.Any(e => e.Id == id);
+            return _context.ListaElectorales.Any(e => e.Id == id);
         }
     }
 }

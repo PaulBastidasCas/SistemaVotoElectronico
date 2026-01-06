@@ -24,14 +24,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Votante>>> GetVotante()
         {
-            return await _context.Votante.ToListAsync();
+            return await _context.Votantes.ToListAsync();
         }
 
         // GET: api/Votantes/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Votante>> GetVotante(int id)
         {
-            var votante = await _context.Votante.FindAsync(id);
+            var votante = await _context.Votantes.FindAsync(id);
 
             if (votante == null)
             {
@@ -77,7 +77,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Votante>> PostVotante(Votante votante)
         {
-            _context.Votante.Add(votante);
+            _context.Votantes.Add(votante);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetVotante", new { id = votante.Id }, votante);
@@ -87,13 +87,13 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVotante(int id)
         {
-            var votante = await _context.Votante.FindAsync(id);
+            var votante = await _context.Votantes.FindAsync(id);
             if (votante == null)
             {
                 return NotFound();
             }
 
-            _context.Votante.Remove(votante);
+            _context.Votantes.Remove(votante);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -101,7 +101,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private bool VotanteExists(int id)
         {
-            return _context.Votante.Any(e => e.Id == id);
+            return _context.Votantes.Any(e => e.Id == id);
         }
     }
 }
