@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36804.6 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.Modelos", "SistemaVotoElectronico.Modelos\SistemaVotoElectronico.Modelos.csproj", "{B4068E1E-1503-4C66-BD17-1BD844D09180}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.Api", "SistemaVotoElectronico.Api\SistemaVotoElectronico.Api.csproj", "{0047AF5A-3D02-4D90-8E03-BBEE96A614CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4068E1E-1503-4C66-BD17-1BD844D09180}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4068E1E-1503-4C66-BD17-1BD844D09180}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4068E1E-1503-4C66-BD17-1BD844D09180}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4068E1E-1503-4C66-BD17-1BD844D09180}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0047AF5A-3D02-4D90-8E03-BBEE96A614CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0047AF5A-3D02-4D90-8E03-BBEE96A614CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0047AF5A-3D02-4D90-8E03-BBEE96A614CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0047AF5A-3D02-4D90-8E03-BBEE96A614CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F068E4A-D256-4B18-9D9D-FC2C7696799E}
+	EndGlobalSection
+EndGlobal
