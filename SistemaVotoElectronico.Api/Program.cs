@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SistemaVotoElectronico.Api
 {
@@ -7,6 +10,19 @@ namespace SistemaVotoElectronico.Api
     {
         public static void Main(string[] args)
         {
+            //==============================================================
+            // Configurar Serilog leyendo desde appsettings.json
+            //==============================================================
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(config)
+                .CreateLogger();
+
+            Log.Information("Iniciado el proceso de LOGGER");
+
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<SistemaVotoElectronicoApiContext>(options =>
