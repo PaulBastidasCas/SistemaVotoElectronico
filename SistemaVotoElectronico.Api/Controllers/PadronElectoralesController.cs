@@ -22,33 +22,51 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/PadronElectorales
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PadronElectoral>>> GetPadronElectoral()
+        public async Task<ActionResult<ApiResult<List<PadronElectoral>>>> GetPadronElectoral()
         {
-            return await _context.PadronElectorales.ToListAsync();
+            try
+            {
+                var data = await _context.PadronElectorales.ToListAsync();
+                return ApiResult<List<PadronElectoral>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<PadronElectoral>>.Fail(ex.Message);
+            }
         }
 
         // GET: api/PadronElectorales/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<PadronElectoral>> GetPadronElectoral(int id)
+        public async Task<ActionResult<ApiResult<PadronElectoral>>> GetPadronElectoral(int id)
         {
-            var padronElectoral = await _context.PadronElectorales.FindAsync(id);
-
-            if (padronElectoral == null)
+            try
             {
-                return NotFound();
-            }
+                var padronElectoral = await _context
+                    .PadronElectorales
+                    .Include(e => e.Eleccion)
+                    .FirstOrDefaultAsync( e  => e.Id == id);
 
-            return padronElectoral;
+                if (padronElectoral == null)
+                {
+                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<PadronElectoral>.Ok(padronElectoral);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<PadronElectoral>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/PadronElectorales/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPadronElectoral(int id, PadronElectoral padronElectoral)
+        public async Task<ActionResult<ApiResult<PadronElectoral>>> PutPadronElectoral(int id, PadronElectoral padronElectoral)
         {
             if (id != padronElectoral.Id)
             {
-                return BadRequest();
+                return ApiResult<PadronElectoral>.Fail("Los identificadores no coinciden");
             }
 
             _context.Entry(padronElectoral).State = EntityState.Modified;
@@ -57,46 +75,60 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!PadronElectoralExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<PadronElectoral>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<PadronElectoral>.Ok(null);
         }
 
         // POST: api/PadronElectorales
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<PadronElectoral>> PostPadronElectoral(PadronElectoral padronElectoral)
+        public async Task<ActionResult<ApiResult<PadronElectoral>>> PostPadronElectoral(PadronElectoral padronElectoral)
         {
-            _context.PadronElectorales.Add(padronElectoral);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.PadronElectorales.Add(padronElectoral);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPadronElectoral", new { id = padronElectoral.Id }, padronElectoral);
+                return ApiResult<PadronElectoral>.Ok(padronElectoral);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<PadronElectoral>.Fail(ex.Message);
+            }
         }
 
         // DELETE: api/PadronElectorales/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePadronElectoral(int id)
+        public async Task<ActionResult<ApiResult<PadronElectoral>>> DeletePadronElectoral(int id)
         {
-            var padronElectoral = await _context.PadronElectorales.FindAsync(id);
-            if (padronElectoral == null)
+            try
             {
-                return NotFound();
+                var padronElectoral = await _context.PadronElectorales.FindAsync(id);
+                if (padronElectoral == null)
+                {
+                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
+                }
+
+                _context.PadronElectorales.Remove(padronElectoral);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<PadronElectoral>.Ok(null);
             }
-
-            _context.PadronElectorales.Remove(padronElectoral);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<PadronElectoral>.Fail(ex.Message);
+            }
         }
 
         private bool PadronElectoralExists(int id)

@@ -22,33 +22,51 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/Candidatos
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Candidato>>> GetCandidato()
+        public async Task<ActionResult<ApiResult<List<Candidato>>>> GetCandidato()
         {
-            return await _context.Candidatos.ToListAsync();
+            try
+            {
+                var data = await _context.Candidatos.ToListAsync();
+                return ApiResult<List<Candidato>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<Candidato>>.Fail(ex.Message);
+            }
         }
 
         // GET: api/Candidatos/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Candidato>> GetCandidato(int id)
+        public async Task<ActionResult<ApiResult<Candidato>>> GetCandidato(int id)
         {
-            var candidato = await _context.Candidatos.FindAsync(id);
-
-            if (candidato == null)
+            try
             {
-                return NotFound();
-            }
+                var candidato = await _context
+                    .Candidatos
+                    .Include(e => e.ListaElectoral)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
-            return candidato;
+                if (candidato == null) 
+                {
+                    return ApiResult<Candidato>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<Candidato>.Ok(candidato);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Candidato>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/Candidatos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCandidato(int id, Candidato candidato)
+        public async Task<ActionResult<ApiResult<Candidato>>> PutCandidato(int id, Candidato candidato)
         {
             if (id != candidato.Id)
             {
-                return BadRequest();
+                return ApiResult<Candidato>.Fail("No coinciden los identificadores");
             }
 
             _context.Entry(candidato).State = EntityState.Modified;
@@ -57,46 +75,62 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!CandidatoExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<Candidato>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<Candidato>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<Candidato>.Ok(null);
         }
 
         // POST: api/Candidatos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Candidato>> PostCandidato(Candidato candidato)
+        public async Task<ActionResult<ApiResult<Candidato>>> PostCandidato(Candidato candidato)
         {
-            _context.Candidatos.Add(candidato);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Candidatos.Add(candidato);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCandidato", new { id = candidato.Id }, candidato);
+                return ApiResult<Candidato>.Ok(candidato);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Candidato>.Fail(ex.Message);
+            }
+            
         }
 
         // DELETE: api/Candidatos/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCandidato(int id)
+        public async Task<ActionResult<ApiResult<Candidato>>> DeleteCandidato(int id)
         {
-            var candidato = await _context.Candidatos.FindAsync(id);
-            if (candidato == null)
+            try
             {
-                return NotFound();
+                var candidato = await _context.Candidatos.FindAsync(id);
+                if (candidato == null)
+                {
+                    return ApiResult<Candidato>.Fail("Datos no encontrados");
+                }
+
+                _context.Candidatos.Remove(candidato);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<Candidato>.Ok(null);
             }
-
-            _context.Candidatos.Remove(candidato);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<Candidato>.Fail(ex.Message);
+            }
+           
         }
 
         private bool CandidatoExists(int id)

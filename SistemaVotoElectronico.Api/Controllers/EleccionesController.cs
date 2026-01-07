@@ -22,33 +22,51 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/Elecciones
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Eleccion>>> GetEleccion()
+        public async Task<ActionResult<ApiResult<List<Eleccion>>>> GetEleccion()
         {
-            return await _context.Elecciones.ToListAsync();
+            try
+            {
+                var data = await _context.Elecciones.ToListAsync();
+                return ApiResult<List<Eleccion>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<Eleccion>>.Fail(ex.Message);
+            }
         }
 
         // GET: api/Elecciones/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Eleccion>> GetEleccion(int id)
+        public async Task<ActionResult<ApiResult<Eleccion>>> GetEleccion(int id)
         {
-            var eleccion = await _context.Elecciones.FindAsync(id);
-
-            if (eleccion == null)
+            try
             {
-                return NotFound();
-            }
+                var eleccion = await _context
+                    .Elecciones
+                    .Include(e  => e.Listas)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
-            return eleccion;
+                if (eleccion == null)
+                {
+                    return ApiResult<Eleccion>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<Eleccion>.Ok(eleccion);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Eleccion>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/Elecciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEleccion(int id, Eleccion eleccion)
+        public async Task<ActionResult<ApiResult<Eleccion>>> PutEleccion(int id, Eleccion eleccion)
         {
             if (id != eleccion.Id)
             {
-                return BadRequest();
+                return ApiResult<Eleccion>.Fail("Identificadores no coinciden");
             }
 
             _context.Entry(eleccion).State = EntityState.Modified;
@@ -57,46 +75,62 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!EleccionExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<Eleccion>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<Eleccion>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<Eleccion>.Ok(null);
         }
 
         // POST: api/Elecciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Eleccion>> PostEleccion(Eleccion eleccion)
+        public async Task<ActionResult<ApiResult<Eleccion>>> PostEleccion(Eleccion eleccion)
         {
-            _context.Elecciones.Add(eleccion);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Elecciones.Add(eleccion);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEleccion", new { id = eleccion.Id }, eleccion);
+                return ApiResult<Eleccion>.Ok(eleccion);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Eleccion>.Fail(ex.Message);
+            }
+           
         }
 
         // DELETE: api/Elecciones/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEleccion(int id)
+        public async Task<ActionResult<ApiResult<Eleccion>>> DeleteEleccion(int id)
         {
-            var eleccion = await _context.Elecciones.FindAsync(id);
-            if (eleccion == null)
+            try
             {
-                return NotFound();
+                var eleccion = await _context.Elecciones.FindAsync(id);
+                if (eleccion == null)
+                {
+                    return ApiResult<Eleccion>.Fail("Datos no encontrados");
+                }
+
+                _context.Elecciones.Remove(eleccion);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<Eleccion>.Ok(null);
             }
-
-            _context.Elecciones.Remove(eleccion);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<Eleccion>.Fail(ex.Message);
+            }
+            
         }
 
         private bool EleccionExists(int id)

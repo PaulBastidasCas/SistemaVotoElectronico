@@ -1,11 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaVotoElectronico.Modelos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -22,33 +23,50 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/Administradores
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Administrador>>> GetAdministrador()
+        public async Task<ActionResult<ApiResult<List<Administrador>>>> GetAdministrador()
         {
-            return await _context.Administradores.ToListAsync();
+            try
+            {
+                var data = await _context.Administradores.ToListAsync();
+                return ApiResult<List<Administrador>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<Administrador>>.Fail(ex.Message);
+            }
+            
         }
 
         // GET: api/Administradores/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Administrador>> GetAdministrador(int id)
+        public async Task<ActionResult<ApiResult<Administrador>>> GetAdministrador(int id)
         {
-            var administrador = await _context.Administradores.FindAsync(id);
-
-            if (administrador == null)
+            try
             {
-                return NotFound();
-            }
+                var administrador = await _context.Administradores.FindAsync(id);
 
-            return administrador;
+                if (administrador == null)
+                {
+                    return ApiResult<Administrador>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<Administrador>.Ok(administrador);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Administrador>.Fail(ex.Message);
+            }
+            
         }
 
         // PUT: api/Administradores/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAdministrador(int id, Administrador administrador)
+        public async Task<ActionResult<ApiResult<Administrador>>> PutAdministrador(int id, Administrador administrador)
         {
             if (id != administrador.Id)
             {
-                return BadRequest();
+                return ApiResult<Administrador>.Fail("No coinciden los identificadores");
             }
 
             _context.Entry(administrador).State = EntityState.Modified;
@@ -57,46 +75,61 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!AdministradorExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<Administrador>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<Administrador>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<Administrador>.Ok(null);
         }
 
         // POST: api/Administradores
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Administrador>> PostAdministrador(Administrador administrador)
+        public async Task<ActionResult<ApiResult<Administrador>>> PostAdministrador(Administrador administrador)
         {
-            _context.Administradores.Add(administrador);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Administradores.Add(administrador);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAdministrador", new { id = administrador.Id }, administrador);
+                return ApiResult<Administrador>.Ok(administrador);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Administrador>.Fail(ex.Message);
+            }
+            
         }
 
         // DELETE: api/Administradores/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAdministrador(int id)
+        public async Task<ActionResult<ApiResult<Administrador>>> DeleteAdministrador(int id)
         {
-            var administrador = await _context.Administradores.FindAsync(id);
-            if (administrador == null)
+            try
             {
-                return NotFound();
+                var administrador = await _context.Administradores.FindAsync(id);
+                if (administrador == null)
+                {
+                    return ApiResult<Administrador>.Fail("Datos no encontrados");
+                }
+
+                _context.Administradores.Remove(administrador);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<Administrador>.Ok(null);
             }
-
-            _context.Administradores.Remove(administrador);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<Administrador>.Fail(ex.Message);
+            }
         }
 
         private bool AdministradorExists(int id)

@@ -22,33 +22,53 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/ListaElectorales
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ListaElectoral>>> GetListaElectoral()
+        public async Task<ActionResult<ApiResult<List<ListaElectoral>>>> GetListaElectoral()
         {
-            return await _context.ListaElectorales.ToListAsync();
+            try
+            {
+                var data = await _context.ListaElectorales.ToListAsync();
+                return ApiResult<List<ListaElectoral>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<ListaElectoral>>.Fail(ex.Message);
+            }
+            
         }
 
         // GET: api/ListaElectorales/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ListaElectoral>> GetListaElectoral(int id)
+        public async Task<ActionResult<ApiResult<ListaElectoral>>> GetListaElectoral(int id)
         {
-            var listaElectoral = await _context.ListaElectorales.FindAsync(id);
-
-            if (listaElectoral == null)
+            try
             {
-                return NotFound();
-            }
+                var listaElectoral = await _context
+                    .ListaElectorales
+                    .Include(e => e.Eleccion)
+                    .Include(e => e.Candidatos)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
-            return listaElectoral;
+                if (listaElectoral == null)
+                {
+                    return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<ListaElectoral>.Ok(listaElectoral);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<ListaElectoral>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/ListaElectorales/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutListaElectoral(int id, ListaElectoral listaElectoral)
+        public async Task<ActionResult<ApiResult<ListaElectoral>>> PutListaElectoral(int id, ListaElectoral listaElectoral)
         {
             if (id != listaElectoral.Id)
             {
-                return BadRequest();
+                return ApiResult<ListaElectoral>.Fail("Los identificadores no coinciden");
             }
 
             _context.Entry(listaElectoral).State = EntityState.Modified;
@@ -57,46 +77,60 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!ListaElectoralExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<ListaElectoral>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<ListaElectoral>.Ok(null);
         }
 
         // POST: api/ListaElectorales
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ListaElectoral>> PostListaElectoral(ListaElectoral listaElectoral)
+        public async Task<ActionResult<ApiResult<ListaElectoral>>> PostListaElectoral(ListaElectoral listaElectoral)
         {
-            _context.ListaElectorales.Add(listaElectoral);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.ListaElectorales.Add(listaElectoral);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetListaElectoral", new { id = listaElectoral.Id }, listaElectoral);
+                return ApiResult<ListaElectoral>.Ok(listaElectoral);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<ListaElectoral>.Fail(ex.Message);
+            }
         }
 
         // DELETE: api/ListaElectorales/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteListaElectoral(int id)
+        public async Task<ActionResult<ApiResult<ListaElectoral>>> DeleteListaElectoral(int id)
         {
-            var listaElectoral = await _context.ListaElectorales.FindAsync(id);
-            if (listaElectoral == null)
+            try
             {
-                return NotFound();
+                var listaElectoral = await _context.ListaElectorales.FindAsync(id);
+                if (listaElectoral == null)
+                {
+                    return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
+                }
+
+                _context.ListaElectorales.Remove(listaElectoral);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<ListaElectoral>.Ok(null);
             }
-
-            _context.ListaElectorales.Remove(listaElectoral);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<ListaElectoral>.Fail(ex.Message);
+            }           
         }
 
         private bool ListaElectoralExists(int id)

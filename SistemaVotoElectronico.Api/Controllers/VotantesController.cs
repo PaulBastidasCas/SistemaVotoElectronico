@@ -22,33 +22,51 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/Votantes
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Votante>>> GetVotante()
+        public async Task<ActionResult<ApiResult<List<Votante>>>> GetVotante()
         {
-            return await _context.Votantes.ToListAsync();
+            try
+            {
+                var data = await _context.Votantes.ToListAsync();
+                return ApiResult<List<Votante>>.Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<List<Votante>>.Fail(ex.Message);
+            }
         }
 
         // GET: api/Votantes/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Votante>> GetVotante(int id)
+        public async Task<ActionResult<ApiResult<Votante>>> GetVotante(int id)
         {
-            var votante = await _context.Votantes.FindAsync(id);
-
-            if (votante == null)
+            try
             {
-                return NotFound();
-            }
+                var votante = await _context
+                    .Votantes
+                    .Include(e => e.HistorialVotos)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
-            return votante;
+                if (votante == null)
+                {
+                    return ApiResult<Votante>.Fail("Datos no encontrados");
+                }
+
+                return ApiResult<Votante>.Ok(votante);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Votante>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/Votantes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutVotante(int id, Votante votante)
+        public async Task<ActionResult<ApiResult<Votante>>> PutVotante(int id, Votante votante)
         {
             if (id != votante.Id)
             {
-                return BadRequest();
+                return ApiResult<Votante>.Fail("Los identificadores no coinciden");
             }
 
             _context.Entry(votante).State = EntityState.Modified;
@@ -57,46 +75,60 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!VotanteExists(id))
                 {
-                    return NotFound();
+                    return ApiResult<Votante>.Fail("Datos no encontrados");
                 }
                 else
                 {
-                    throw;
+                    return ApiResult<Votante>.Fail(ex.Message);
                 }
             }
 
-            return NoContent();
+            return ApiResult<Votante>.Ok(null);
         }
 
         // POST: api/Votantes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Votante>> PostVotante(Votante votante)
+        public async Task<ActionResult<ApiResult<Votante>>> PostVotante(Votante votante)
         {
-            _context.Votantes.Add(votante);
-            await _context.SaveChangesAsync();
+            try
+            {
+                _context.Votantes.Add(votante);
+                await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetVotante", new { id = votante.Id }, votante);
+                return ApiResult<Votante>.Ok(votante);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<Votante>.Fail(ex.Message);
+            }
         }
 
         // DELETE: api/Votantes/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVotante(int id)
+        public async Task<ActionResult<ApiResult<Votante>>> DeleteVotante(int id)
         {
-            var votante = await _context.Votantes.FindAsync(id);
-            if (votante == null)
+            try
             {
-                return NotFound();
+                var votante = await _context.Votantes.FindAsync(id);
+                if (votante == null)
+                {
+                    return ApiResult<Votante>.Fail("Datos no encontrados");
+                }
+
+                _context.Votantes.Remove(votante);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<Votante>.Ok(null);
             }
-
-            _context.Votantes.Remove(votante);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return ApiResult<Votante>.Fail(ex.Message);
+            }
         }
 
         private bool VotanteExists(int id)
