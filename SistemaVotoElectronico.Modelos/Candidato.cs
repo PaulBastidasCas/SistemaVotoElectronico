@@ -25,6 +25,6 @@ namespace SistemaVotoElectronico.Modelos
         public int ListaElectoralId { get; set; }
 
         [ForeignKey("ListaElectoralId")]
-        public ListaElectoral ListaElectoral { get; set; }
+        public ListaElectoral? ListaElectoral { get; set; }
     }
 }

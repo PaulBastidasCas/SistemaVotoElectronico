@@ -31,7 +31,8 @@ namespace SistemaVotoElectronico.ApiConsumer
                     }
                     else
                     {
-                        return ApiResult<T>.Fail($"Error: {response.StatusCode}");
+                        var errorResponse = response.Content.ReadAsStringAsync().Result;
+                        return ApiResult<T>.Fail($"Error: {response.StatusCode}. Detalles: {errorResponse}");
                     }
                 }
             }
