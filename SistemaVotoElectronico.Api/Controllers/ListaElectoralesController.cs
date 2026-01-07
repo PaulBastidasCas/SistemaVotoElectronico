@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaVotoElectronico.Modelos;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -27,10 +29,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.ListaElectorales.ToListAsync();
+                Log.Information($"{data}");
                 return ApiResult<List<ListaElectoral>>.Ok(data);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<List<ListaElectoral>>.Fail(ex.Message);
             }
             
@@ -50,13 +54,15 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (listaElectoral == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
                 }
-
+                Log.Information($"{listaElectoral}");
                 return ApiResult<ListaElectoral>.Ok(listaElectoral);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<ListaElectoral>.Fail(ex.Message);
             }
         }
@@ -68,6 +74,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != listaElectoral.Id)
             {
+                Log.Information("Los identificadores no coinciden");
                 return ApiResult<ListaElectoral>.Fail("Los identificadores no coinciden");
             }
 
@@ -81,14 +88,16 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 if (!ListaElectoralExists(id))
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
                 }
                 else
                 {
+                    Log.Information(ex.Message);
                     return ApiResult<ListaElectoral>.Fail(ex.Message);
                 }
             }
-
+            Log.Information($"{null}");
             return ApiResult<ListaElectoral>.Ok(null);
         }
 
@@ -101,11 +110,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 _context.ListaElectorales.Add(listaElectoral);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{listaElectoral}");
                 return ApiResult<ListaElectoral>.Ok(listaElectoral);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<ListaElectoral>.Fail(ex.Message);
             }
         }
@@ -119,16 +129,18 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var listaElectoral = await _context.ListaElectorales.FindAsync(id);
                 if (listaElectoral == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<ListaElectoral>.Fail("Datos no encontrados");
                 }
 
                 _context.ListaElectorales.Remove(listaElectoral);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{null}");
                 return ApiResult<ListaElectoral>.Ok(null);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<ListaElectoral>.Fail(ex.Message);
             }           
         }

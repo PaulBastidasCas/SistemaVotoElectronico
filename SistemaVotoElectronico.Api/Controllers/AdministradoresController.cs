@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
@@ -28,10 +29,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.Administradores.ToListAsync();
+                Log.Information($"{data}");
                 return ApiResult<List<Administrador>>.Ok(data);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<List<Administrador>>.Fail(ex.Message);
             }
             
@@ -47,13 +50,15 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (administrador == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Administrador>.Fail("Datos no encontrados");
                 }
-
+                Log.Information($"{administrador}");
                 return ApiResult<Administrador>.Ok(administrador);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Administrador>.Fail(ex.Message);
             }
             
@@ -66,6 +71,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != administrador.Id)
             {
+                Log.Information("No coinciden los identificadores");
                 return ApiResult<Administrador>.Fail("No coinciden los identificadores");
             }
 
@@ -79,14 +85,16 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 if (!AdministradorExists(id))
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Administrador>.Fail("Datos no encontrados");
                 }
                 else
                 {
+                    Log.Information(ex.Message);
                     return ApiResult<Administrador>.Fail(ex.Message);
                 }
             }
-
+            Log.Information($"{null}");
             return ApiResult<Administrador>.Ok(null);
         }
 
@@ -99,11 +107,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 _context.Administradores.Add(administrador);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{administrador}");
                 return ApiResult<Administrador>.Ok(administrador);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Administrador>.Fail(ex.Message);
             }
             
@@ -118,16 +127,18 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var administrador = await _context.Administradores.FindAsync(id);
                 if (administrador == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Administrador>.Fail("Datos no encontrados");
                 }
 
                 _context.Administradores.Remove(administrador);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{null}");
                 return ApiResult<Administrador>.Ok(null);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Administrador>.Fail(ex.Message);
             }
         }

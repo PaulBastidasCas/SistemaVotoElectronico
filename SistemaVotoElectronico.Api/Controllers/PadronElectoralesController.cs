@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaVotoElectronico.Modelos;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -27,10 +29,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.PadronElectorales.ToListAsync();
+                Log.Information($"{data}");
                 return ApiResult<List<PadronElectoral>>.Ok(data);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<List<PadronElectoral>>.Fail(ex.Message);
             }
         }
@@ -48,6 +52,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (padronElectoral == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
                 }
 
@@ -55,6 +60,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
             }
         }
@@ -66,6 +72,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != padronElectoral.Id)
             {
+                Log.Information("Los identificadores no coinciden");
                 return ApiResult<PadronElectoral>.Fail("Los identificadores no coinciden");
             }
 
@@ -79,14 +86,16 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 if (!PadronElectoralExists(id))
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
                 }
                 else
                 {
+                    Log.Information(ex.Message);
                     return ApiResult<PadronElectoral>.Fail(ex.Message);
                 }
             }
-
+            Log.Information($"{null}");
             return ApiResult<PadronElectoral>.Ok(null);
         }
 
@@ -99,11 +108,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 _context.PadronElectorales.Add(padronElectoral);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{padronElectoral}");
                 return ApiResult<PadronElectoral>.Ok(padronElectoral);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
             }
         }
@@ -117,16 +127,18 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var padronElectoral = await _context.PadronElectorales.FindAsync(id);
                 if (padronElectoral == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
                 }
 
                 _context.PadronElectorales.Remove(padronElectoral);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{null}");
                 return ApiResult<PadronElectoral>.Ok(null);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
             }
         }

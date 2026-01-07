@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaVotoElectronico.Modelos;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -27,10 +29,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.Votantes.ToListAsync();
+                Log.Information($"{data}");
                 return ApiResult<List<Votante>>.Ok(data);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<List<Votante>>.Fail(ex.Message);
             }
         }
@@ -48,13 +52,15 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (votante == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Votante>.Fail("Datos no encontrados");
                 }
-
+                Log.Information($"{votante}");
                 return ApiResult<Votante>.Ok(votante);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Votante>.Fail(ex.Message);
             }
         }
@@ -66,6 +72,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != votante.Id)
             {
+                Log.Information("Los identificadores no coinciden");
                 return ApiResult<Votante>.Fail("Los identificadores no coinciden");
             }
 
@@ -79,14 +86,17 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 if (!VotanteExists(id))
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Votante>.Fail("Datos no encontrados");
                 }
                 else
                 {
+                    Log.Information(ex.Message);
                     return ApiResult<Votante>.Fail(ex.Message);
                 }
             }
 
+            Log.Information($"{null}");
             return ApiResult<Votante>.Ok(null);
         }
 
@@ -99,11 +109,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 _context.Votantes.Add(votante);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{votante}");
                 return ApiResult<Votante>.Ok(votante);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Votante>.Fail(ex.Message);
             }
         }
@@ -117,16 +128,18 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var votante = await _context.Votantes.FindAsync(id);
                 if (votante == null)
                 {
+                    Log.Information("Datos no encontrados");
                     return ApiResult<Votante>.Fail("Datos no encontrados");
                 }
 
                 _context.Votantes.Remove(votante);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{null}");
                 return ApiResult<Votante>.Ok(null);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Votante>.Fail(ex.Message);
             }
         }
