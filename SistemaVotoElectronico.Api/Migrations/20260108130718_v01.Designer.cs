@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-    [Migration("20260106205249_version1")]
-    partial class version1
+    [Migration("20260108130718_v01")]
+    partial class v01
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,7 +45,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Fotografia")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")

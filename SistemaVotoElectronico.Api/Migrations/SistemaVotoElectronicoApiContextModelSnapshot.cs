@@ -42,7 +42,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Fotografia")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")
