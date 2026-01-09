@@ -5,36 +5,36 @@ using SistemaVotoElectronico.Modelos;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {
-    public class AdministradoresController : Controller
+    public class PadronElectoralesController : Controller
     {
-        // GET: AdministradoresController
+        // GET: PadronElectoralesController
         public async Task<IActionResult> Index()
         {
-            var res = await Crud<Administrador>.ReadAllAsync();
-            return View(res.Data ?? new List<Administrador>());
+            var res = await Crud<PadronElectoral>.ReadAllAsync();
+            return View(res.Data ?? new List<PadronElectoral>());
         }
 
-        // GET: AdministradoresController/Details/5
+        // GET: PadronElectoralesController/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
             return View(res.Data);
         }
 
-        // GET: AdministradoresController/Create
+        // GET: PadronElectoralesController/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: AdministradoresController/Create
+        // POST: PadronElectoralesController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Administrador model)
+        public async Task<IActionResult> Create(PadronElectoral model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Administrador>.CreateAsync(model);
+            var res = await Crud<PadronElectoral>.CreateAsync(model);
 
             if (res.Success)
             {
@@ -45,21 +45,21 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: AdministradoresController/Edit/5
+        // GET: PadronElectoralesController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
-            return View(res.Data);
+            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
+            return View(res.Data); ;
         }
 
-        // POST: AdministradoresController/Edit/5
+        // POST: PadronElectoralesController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Administrador model)
+        public async Task<IActionResult> Edit(int id, PadronElectoral model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Administrador>.UpdateAsync(id.ToString(), model);
+            var res = await Crud<PadronElectoral>.UpdateAsync(id.ToString(), model);
 
             if (res.Success)
             {
@@ -70,19 +70,19 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: AdministradoresController/Delete/5
+        // GET: PadronElectoralesController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: AdministradoresController/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // POST: PadronElectoralesController/Delete/5
+        [HttpPost, ActionName("Dalete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Administrador>.DeleteAsync(id.ToString());
+            await Crud<Candidato>.DeleteAsync(id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }
