@@ -1,24 +1,28 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SistemaVotoElectronico.ApiConsumer;
+using SistemaVotoElectronico.Modelos;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class AdministradoresController : Controller
     {
         // GET: AdministradoresController
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var res = await Crud<Administrador>.ReadAllAsync();
+            return View(res.Data ?? new List<Administrador>());
         }
 
         // GET: AdministradoresController/Details/5
-        public ActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            return View();
+            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            return View(res.Data);
         }
 
         // GET: AdministradoresController/Create
-        public ActionResult Create()
+        public IActionResult Create()
         {
             return View();
         }
@@ -26,58 +30,61 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // POST: AdministradoresController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(Administrador model)
         {
-            try
+            if (!ModelState.IsValid) return View(model);
+
+            var res = await Crud<Administrador>.CreateAsync(model);
+
+            if (res.Success)
             {
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            ModelState.AddModelError("", res.Message);
+            return View(model);
         }
 
         // GET: AdministradoresController/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            return View(res.Data);
         }
 
         // POST: AdministradoresController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Edit(int id, Administrador model)
         {
-            try
+            // 1. Validar campos locales (Requeridos, formatos, etc.)
+            if (!ModelState.IsValid) return View(model);
+
+            var res = await Crud<Administrador>.UpdateAsync(id.ToString(), model);
+
+            if (res.Success)
             {
                 return RedirectToAction(nameof(Index));
             }
-            catch
-            {
-                return View();
-            }
+
+            ModelState.AddModelError("", res.Message);
+            return View(model);
         }
 
         // GET: AdministradoresController/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            return View();
+            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            return View(res.Data);
         }
 
         // POST: AdministradoresController/Delete/5
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            await Crud<Administrador>.DeleteAsync(id.ToString());
+            return RedirectToAction(nameof(Index));
         }
     }
 }

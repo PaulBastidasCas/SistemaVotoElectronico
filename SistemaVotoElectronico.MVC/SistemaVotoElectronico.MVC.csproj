@@ -7,12 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SistemaVotoElectronico.Api\SistemaVotoElectronico.Api.csproj" />
-    <ProjectReference Include="..\SistemaVotoElectronico.Modelos\SistemaVotoElectronico.Modelos.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.22">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.22" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.22" />
+    <ProjectReference Include="..\SistemaVotoElectronico.ApiConsumer\SistemaVotoElectronico.ApiConsumer.csproj" />
+    <ProjectReference Include="..\SistemaVotoElectronico.Api\SistemaVotoElectronico.Api.csproj" />
+    <ProjectReference Include="..\SistemaVotoElectronico.Modelos\SistemaVotoElectronico.Modelos.csproj" />
   </ItemGroup>
 
 </Project>

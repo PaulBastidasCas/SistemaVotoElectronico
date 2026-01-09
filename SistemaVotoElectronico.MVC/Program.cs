@@ -1,9 +1,23 @@
+using SistemaVotoElectronico.ApiConsumer;
+using SistemaVotoElectronico.Modelos;
+
 namespace SistemaVotoElectronico.MVC
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+
+            string api = "http://localhost:5050/api";
+
+            Crud<Administrador>.UrlBase = $"{api}/Administradores";
+            Crud<Candidato>.UrlBase = $"{api}/Candidatos";
+            Crud<Eleccion>.UrlBase = $"{api}/Elecciones";
+            Crud<ListaElectoral>.UrlBase = $"{api}/ListaElectorales";
+            Crud<PadronElectoral>.UrlBase = $"{api}/PadronElectoral";
+            Crud<Votante>.UrlBase = $"{api}/Votantes";
+            Crud<Voto>.UrlBase = $"{api}/Votos";
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.

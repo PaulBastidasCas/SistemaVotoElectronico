@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.ApiC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.ApiTest", "SistemaVotoElectronico.ApiTest\SistemaVotoElectronico.ApiTest.csproj", "{7361273F-C666-45B2-851A-B8431BD95CA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.MVC", "SistemaVotoElectronico.MVC\SistemaVotoElectronico.MVC.csproj", "{36F7460E-BA76-4A1F-85FC-AD6FC88511F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SistemaVotoElectronico.MVC", "SistemaVotoElectronico.MVC\SistemaVotoElectronico.MVC.csproj", "{1CF5FF51-3680-401C-AF4F-71C37ACEF168}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{7361273F-C666-45B2-851A-B8431BD95CA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7361273F-C666-45B2-851A-B8431BD95CA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7361273F-C666-45B2-851A-B8431BD95CA4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36F7460E-BA76-4A1F-85FC-AD6FC88511F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36F7460E-BA76-4A1F-85FC-AD6FC88511F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36F7460E-BA76-4A1F-85FC-AD6FC88511F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36F7460E-BA76-4A1F-85FC-AD6FC88511F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CF5FF51-3680-401C-AF4F-71C37ACEF168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CF5FF51-3680-401C-AF4F-71C37ACEF168}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CF5FF51-3680-401C-AF4F-71C37ACEF168}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CF5FF51-3680-401C-AF4F-71C37ACEF168}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
