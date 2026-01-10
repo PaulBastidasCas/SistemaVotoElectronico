@@ -16,6 +16,6 @@ namespace SistemaVotoElectronico.Modelos
         public DateTime FechaFinalizacion { get; set; }
         public bool Activa { get; set; }
 
-        public List<ListaElectoral> Listas { get; set; }
+        public List<ListaElectoral>? Listas { get; set; }
     }
 }

@@ -22,7 +22,7 @@ namespace SistemaVotoElectronico.Modelos
         public int OrdenEnLista { get; set; }
 
         //FK
-        public int ListaElectoralId { get; set; }
+        public int? ListaElectoralId { get; set; }
 
         [ForeignKey("ListaElectoralId")]
         public ListaElectoral? ListaElectoral { get; set; }

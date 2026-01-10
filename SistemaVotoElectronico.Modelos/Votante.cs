@@ -18,6 +18,6 @@ namespace SistemaVotoElectronico.Modelos
 
         public string Rol { get; set; } = "Votante";
 
-        public List<PadronElectoral> HistorialVotos { get; set; }
+        public List<PadronElectoral>? HistorialVotos { get; set; }
     }
 }

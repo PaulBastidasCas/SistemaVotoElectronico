@@ -12,14 +12,14 @@ namespace SistemaVotoElectronico.Modelos
     {
         [Key] public int Id { get; set; }
 
-        public int VotanteId { get; set; }
+        public int? VotanteId { get; set; }
         [ForeignKey("VotanteId")]
-        public Votante Votante { get; set; }
+        public Votante? Votante { get; set; }
 
-        public int EleccionId { get; set; }
+        public int? EleccionId { get; set; }
 
         [ForeignKey("EleccionId")]
-        public Eleccion Eleccion { get; set; }
+        public Eleccion? Eleccion { get; set; }
 
         public bool VotoPlanchaRealizado { get; set; }
         public bool VotoNominalRealizado { get; set; }
