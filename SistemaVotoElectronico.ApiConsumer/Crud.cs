@@ -21,7 +21,6 @@ namespace SistemaVotoElectronico.ApiConsumer
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(UrlBase, content);
-
                 var responseJson = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
@@ -58,10 +57,28 @@ namespace SistemaVotoElectronico.ApiConsumer
         {
             try
             {
-                var response = await _httpClient.GetAsync($"{UrlBase}/{field}/{value}");
+                string url;
+
+                if (field.Equals("Id", StringComparison.OrdinalIgnoreCase))
+                {
+                    url = $"{UrlBase}/{value}";
+                }
+                else
+                {
+                    url = $"{UrlBase}/{field}/{value}";
+                }
+
+                var response = await _httpClient.GetAsync(url);
                 var responseJson = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<ApiResult<T>>(responseJson);
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<ApiResult<T>>(responseJson);
+                }
+                else
+                {
+                    return ApiResult<T>.Fail($"Error: {response.StatusCode}. No se encontró el recurso.");
+                }
             }
             catch (Exception ex)
             {
