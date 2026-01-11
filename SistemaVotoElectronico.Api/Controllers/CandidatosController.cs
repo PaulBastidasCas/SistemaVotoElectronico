@@ -76,11 +76,27 @@ namespace SistemaVotoElectronico.Api.Controllers
                 return ApiResult<Candidato>.Fail("No coinciden los identificadores");
             }
 
-            _context.Entry(candidato).State = EntityState.Modified;
-
             try
             {
+                var candidatoAnterior = await _context.Candidatos
+                                              .AsNoTracking()
+                                              .FirstOrDefaultAsync(x => x.Id == id);
+                
+                if (candidatoAnterior == null) return ApiResult<Candidato>.Fail("No existe");
+
+                if (string.IsNullOrEmpty(candidato.Contrasena))
+                {
+                    candidato.Contrasena = candidatoAnterior.Contrasena;
+                }
+                else
+                {
+                    candidato.Contrasena = BCrypt.Net.BCrypt.HashPassword(candidato.Contrasena);
+                }
+
+                _context.Entry(candidato).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                return ApiResult<Candidato>.Ok(null);
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -95,8 +111,6 @@ namespace SistemaVotoElectronico.Api.Controllers
                     return ApiResult<Candidato>.Fail(ex.Message);
                 }
             }
-            Log.Information($"{null}");
-            return ApiResult<Candidato>.Ok(null);
         }
 
         // POST: api/Candidatos
@@ -106,8 +120,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                if (!string.IsNullOrEmpty(candidato.Contrasena))
+                {
+                    candidato.Contrasena = BCrypt.Net.BCrypt.HashPassword(candidato.Contrasena);
+                }
+
                 _context.Candidatos.Add(candidato);
                 await _context.SaveChangesAsync();
+
                 Log.Information($"{candidato}");
                 return ApiResult<Candidato>.Ok(candidato);
             }

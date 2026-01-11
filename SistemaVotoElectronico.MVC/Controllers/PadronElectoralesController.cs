@@ -78,7 +78,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         }
 
         // POST: PadronElectoralesController/Delete/5
-        [HttpPost, ActionName("Dalete")]
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

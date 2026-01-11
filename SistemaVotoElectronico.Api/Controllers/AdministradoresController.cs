@@ -75,11 +75,26 @@ namespace SistemaVotoElectronico.Api.Controllers
                 return ApiResult<Administrador>.Fail("No coinciden los identificadores");
             }
 
-            _context.Entry(administrador).State = EntityState.Modified;
-
             try
             {
+                var adminAnterior = await _context.Administradores
+                                          .AsNoTracking()
+                                          .FirstOrDefaultAsync(x => x.Id == id);
+                if (adminAnterior == null) return ApiResult<Administrador>.Fail("No existe");
+
+                if (string.IsNullOrEmpty(administrador.Contrasena))
+                {
+                    administrador.Contrasena = adminAnterior.Contrasena;
+                }
+                else
+                {
+                    administrador.Contrasena = BCrypt.Net.BCrypt.HashPassword(administrador.Contrasena);
+                }
+
+                _context.Entry(administrador).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                return ApiResult<Administrador>.Ok(null);
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -105,8 +120,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(administrador.Contrasena))
+                    return ApiResult<Administrador>.Fail("La contraseña es obligatoria");
+
+                administrador.Contrasena = BCrypt.Net.BCrypt.HashPassword(administrador.Contrasena);
+
                 _context.Administradores.Add(administrador);
                 await _context.SaveChangesAsync();
+
                 Log.Information($"{administrador}");
                 return ApiResult<Administrador>.Ok(administrador);
             }
