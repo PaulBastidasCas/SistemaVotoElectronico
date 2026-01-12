@@ -35,8 +35,4 @@
     <ProjectReference Include="..\SistemaVotoElectronico.Modelos\SistemaVotoElectronico.Modelos.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
 </Project>

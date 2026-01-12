@@ -1,5 +1,6 @@
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace SistemaVotoElectronico.MVC
 {
@@ -7,7 +8,6 @@ namespace SistemaVotoElectronico.MVC
     {
         public static void Main(string[] args)
         {
-
             string api = "http://localhost:5050/api";
 
             Crud<Administrador>.UrlBase = $"{api}/Administradores";
@@ -20,8 +20,15 @@ namespace SistemaVotoElectronico.MVC
 
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); 
+                    options.AccessDeniedPath = "/Account/AccessDenied"; 
+                });
 
             var app = builder.Build();
 
@@ -29,7 +36,6 @@ namespace SistemaVotoElectronico.MVC
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
@@ -37,12 +43,12 @@ namespace SistemaVotoElectronico.MVC
             app.UseStaticFiles();
 
             app.UseRouting();
-
-            app.UseAuthorization();
+            app.UseAuthentication(); 
+            app.UseAuthorization();  
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Account}/{action=Login}/{id?}"); 
 
             app.Run();
         }
