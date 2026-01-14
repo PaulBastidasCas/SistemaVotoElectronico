@@ -48,7 +48,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var padronElectoral = await _context
                     .PadronElectorales
                     .Include(e => e.Eleccion)
-                    .FirstOrDefaultAsync( e  => e.Id == id);
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (padronElectoral == null)
                 {
@@ -147,5 +147,61 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             return _context.PadronElectorales.Any(e => e.Id == id);
         }
+
+        [HttpPost("generar-codigo")]
+        public async Task<ActionResult<ApiResult<object>>> GenerarCodigo([FromBody] GenerarCodigoRequest request)
+        {
+            try
+            {
+                var registroPadron = await _context.PadronElectorales
+                    .Include(p => p.Votante)
+                    .FirstOrDefaultAsync(p => p.Votante.Cedula == request.CedulaVotante
+                                           && p.EleccionId == request.EleccionId);
+
+                if (registroPadron == null)
+                    return ApiResult<object>.Fail("El votante no está empadronado en esta elección.");
+
+                if (registroPadron.MesaId != request.MesaId)
+                    return ApiResult<object>.Fail("Este votante pertenece a otra mesa.");
+
+                if (registroPadron.CodigoCanjeado)
+                    return ApiResult<object>.Fail("ALERTA: Este votante ya ejerció su voto.");
+
+                if (!string.IsNullOrEmpty(registroPadron.CodigoEnlace))
+                {
+                    return ApiResult<object>.Ok(new
+                    {
+                        Mensaje = "Código recuperado (ya existía)",
+                        Codigo = registroPadron.CodigoEnlace,
+                        Nombre = registroPadron.Votante.NombreCompleto
+                    });
+                }
+
+                string codigoNuevo = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+
+                registroPadron.CodigoEnlace = codigoNuevo;
+                registroPadron.FechaGeneracionCodigo = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+
+                return ApiResult<object>.Ok(new
+                {
+                    Mensaje = "Código generado exitosamente",
+                    Codigo = codigoNuevo,
+                    Nombre = registroPadron.Votante.NombreCompleto
+                });
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<object>.Fail(ex.Message);
+            }
+        }
+    }
+
+    public class GenerarCodigoRequest
+    {
+        public string CedulaVotante { get; set; }
+        public int EleccionId { get; set; }
+        public int MesaId { get; set; }
     }
 }

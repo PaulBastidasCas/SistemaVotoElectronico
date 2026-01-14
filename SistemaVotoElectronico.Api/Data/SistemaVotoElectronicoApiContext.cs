@@ -25,4 +25,8 @@ public DbSet<SistemaVotoElectronico.Modelos.PadronElectoral> PadronElectorales {
 public DbSet<SistemaVotoElectronico.Modelos.Votante> Votantes { get; set; } = default!;
 
 public DbSet<SistemaVotoElectronico.Modelos.Voto> Votos { get; set; } = default!;
+
+public DbSet<SistemaVotoElectronico.Modelos.JefeDeMesa> JefesDeMesa { get; set; } = default!;
+
+public DbSet<SistemaVotoElectronico.Modelos.Mesa> Mesas { get; set; } = default!;
     }

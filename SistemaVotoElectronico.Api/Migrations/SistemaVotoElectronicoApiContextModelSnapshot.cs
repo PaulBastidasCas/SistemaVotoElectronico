@@ -42,7 +42,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Fotografia")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")
@@ -82,7 +81,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("ListaElectoralId")
+                    b.Property<int?>("ListaElectoralId")
                         .HasColumnType("integer");
 
                     b.Property<string>("NombreCompleto")
@@ -133,6 +132,39 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("Elecciones");
                 });
 
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.JefeDeMesa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Cedula")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Contrasena")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("NombreCompleto")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("JefesDeMesa");
+                });
+
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.ListaElectoral", b =>
                 {
                     b.Property<int>("Id")
@@ -145,7 +177,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("EleccionId")
+                    b.Property<int?>("EleccionId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Logotipo")
@@ -171,7 +203,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("ListaElectorales");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.PadronElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Mesa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,10 +214,54 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.Property<int>("EleccionId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("FechaVoto")
+                    b.Property<int?>("JefeDeMesaId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Ubicacion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EleccionId");
+
+                    b.HasIndex("JefeDeMesaId")
+                        .IsUnique();
+
+                    b.ToTable("Mesas");
+                });
+
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.PadronElectoral", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CodigoCanjeado")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("CodigoEnlace")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("EleccionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("FechaGeneracionCodigo")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("VotanteId")
+                    b.Property<DateTime?>("FechaVoto")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("MesaId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("VotanteId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("VotoNominalRealizado")
@@ -197,6 +273,8 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EleccionId");
+
+                    b.HasIndex("MesaId");
 
                     b.HasIndex("VotanteId");
 
@@ -246,16 +324,16 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int>("EleccionId")
+                    b.Property<int?>("EleccionId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("IdCandidatoSeleccionado")
+                    b.Property<int?>("IdCandidatoSeleccionado")
                         .HasColumnType("integer");
 
-                    b.Property<int>("IdListaSeleccionada")
+                    b.Property<int?>("IdListaSeleccionada")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -269,9 +347,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                 {
                     b.HasOne("SistemaVotoElectronico.Modelos.ListaElectoral", "ListaElectoral")
                         .WithMany("Candidatos")
-                        .HasForeignKey("ListaElectoralId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ListaElectoralId");
 
                     b.Navigation("ListaElectoral");
                 });
@@ -280,28 +356,45 @@ namespace SistemaVotoElectronico.Api.Migrations
                 {
                     b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
                         .WithMany("Listas")
+                        .HasForeignKey("EleccionId");
+
+                    b.Navigation("Eleccion");
+                });
+
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Mesa", b =>
+                {
+                    b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
+                        .WithMany("Mesas")
                         .HasForeignKey("EleccionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SistemaVotoElectronico.Modelos.JefeDeMesa", "JefeDeMesa")
+                        .WithOne("MesaAsignada")
+                        .HasForeignKey("SistemaVotoElectronico.Modelos.Mesa", "JefeDeMesaId");
+
                     b.Navigation("Eleccion");
+
+                    b.Navigation("JefeDeMesa");
                 });
 
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.PadronElectoral", b =>
                 {
                     b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
                         .WithMany()
-                        .HasForeignKey("EleccionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EleccionId");
+
+                    b.HasOne("SistemaVotoElectronico.Modelos.Mesa", "Mesa")
+                        .WithMany()
+                        .HasForeignKey("MesaId");
 
                     b.HasOne("SistemaVotoElectronico.Modelos.Votante", "Votante")
                         .WithMany("HistorialVotos")
-                        .HasForeignKey("VotanteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("VotanteId");
 
                     b.Navigation("Eleccion");
+
+                    b.Navigation("Mesa");
 
                     b.Navigation("Votante");
                 });
@@ -310,9 +403,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                 {
                     b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
                         .WithMany()
-                        .HasForeignKey("EleccionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EleccionId");
 
                     b.Navigation("Eleccion");
                 });
@@ -320,6 +411,13 @@ namespace SistemaVotoElectronico.Api.Migrations
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.Eleccion", b =>
                 {
                     b.Navigation("Listas");
+
+                    b.Navigation("Mesas");
+                });
+
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.JefeDeMesa", b =>
+                {
+                    b.Navigation("MesaAsignada");
                 });
 
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.ListaElectoral", b =>

@@ -21,8 +21,17 @@ namespace SistemaVotoElectronico.Modelos
         [ForeignKey("EleccionId")]
         public Eleccion? Eleccion { get; set; }
 
+        public int? MesaId { get; set; }
+        [ForeignKey("MesaId")]
+        public Mesa? Mesa { get; set; }
+
+        public string? CodigoEnlace { get; set; }
+        public DateTime? FechaGeneracionCodigo { get; set; }
+
+        public bool CodigoCanjeado { get; set; } = false;
+        public DateTime? FechaVoto { get; set; }
+
         public bool VotoPlanchaRealizado { get; set; }
         public bool VotoNominalRealizado { get; set; }
-        public DateTime FechaVoto { get; set; }
     }
 }
