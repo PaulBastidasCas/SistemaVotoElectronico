@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaVotoElectronico.Modelos;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -21,19 +23,18 @@ namespace SistemaVotoElectronico.Api.Controllers
         }
 
         // GET: api/Mesas
-        [HttpGet] 
+        [HttpGet]
         public async Task<ActionResult<ApiResult<List<Mesa>>>> GetMesas()
         {
             try
             {
-                var data = await _context.Mesas
-                                         .Include(m => m.Eleccion)
-                                         .ToListAsync();
-
+                var data = await _context.Mesas.ToListAsync();
+                Log.Information($"{data}");
                 return ApiResult<List<Mesa>>.Ok(data);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<List<Mesa>>.Fail(ex.Message);
             }
         }
@@ -44,17 +45,23 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var mesa = await _context.Mesas
-                                         .Include(m => m.Eleccion)
-                                         .Include(m => m.JefeDeMesa) 
-                                         .FirstOrDefaultAsync(m => m.Id == id);
+                var mesa = await _context
+                    .Mesas
+                    .Include(e => e.Eleccion)
+                    .Include(e => e.JefeDeMesa)
+                    .FirstOrDefaultAsync(e => e.Id == id);
 
-                if (mesa == null) return ApiResult<Mesa>.Fail("Mesa no encontrada");
-
+                if (mesa == null)
+                {
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<Mesa>.Fail("Datos no encontrados");
+                }
+                Log.Information($"{mesa}");
                 return ApiResult<Mesa>.Ok(mesa);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Mesa>.Fail(ex.Message);
             }
         }
@@ -64,22 +71,33 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResult<Mesa>>> PutMesa(int id, Mesa mesa)
         {
-            if (id != mesa.Id) return ApiResult<Mesa>.Fail("IDs no coinciden");
+            if (id != mesa.Id)
+            {
+                Log.Information("Identificadores no coinciden");
+                return ApiResult<Mesa>.Fail("Los identificadores no coinciden");
+            }
+
+            _context.Entry(mesa).State = EntityState.Modified;
 
             try
             {
-                var mesaAnterior = await _context.Mesas.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
-                if (mesaAnterior == null) return ApiResult<Mesa>.Fail("La mesa no existe");
-
-                _context.Entry(mesa).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-
-                return ApiResult<Mesa>.Ok(null);
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException ex)
             {
-                return ApiResult<Mesa>.Fail(ex.Message);
+                if (!MesaExists(id))
+                {
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<Mesa>.Fail("Datos no encontrados");
+                }
+                else
+                {
+                    Log.Information(ex.Message);
+                    return ApiResult<Mesa>.Fail(ex.Message);
+                }
             }
+            Log.Information($"{null}");
+            return ApiResult<Mesa>.Ok(null);
         }
 
         // POST: api/Mesas
@@ -89,43 +107,48 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                // Validar que la elección exista
-                var eleccionExiste = await _context.Elecciones.AnyAsync(e => e.Id == mesa.EleccionId);
-                if (!eleccionExiste)
-                    return ApiResult<Mesa>.Fail("La elección especificada no existe.");
-
                 _context.Mesas.Add(mesa);
                 await _context.SaveChangesAsync();
-
+                Log.Information($"{mesa}");
                 return ApiResult<Mesa>.Ok(mesa);
             }
             catch (Exception ex)
             {
+                Log.Information(ex.Message);
                 return ApiResult<Mesa>.Fail(ex.Message);
             }
         }
 
         // DELETE: api/Mesas/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResult<bool>>> DeleteMesa(int id)
+        public async Task<ActionResult<ApiResult<Mesa>>> DeleteMesa(int id)
         {
             try
             {
                 var mesa = await _context.Mesas.FindAsync(id);
-                if (mesa == null) return ApiResult<bool>.Fail("Mesa no encontrada");
-                var tieneVotantes = await _context.PadronElectorales.AnyAsync(p => p.MesaId == id);
-                if (tieneVotantes)
-                    return ApiResult<bool>.Fail("No se puede borrar la mesa porque tiene votantes asignados en el padrón.");
+                if (mesa == null)
+                {
+
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<Mesa>.Fail("Datos no encontrados");
+                }
 
                 _context.Mesas.Remove(mesa);
                 await _context.SaveChangesAsync();
 
-                return ApiResult<bool>.Ok(true);
+                Log.Information($"{null}");
+                return ApiResult<Mesa>.Ok(null);
             }
             catch (Exception ex)
             {
-                return ApiResult<bool>.Fail(ex.Message);
+                Log.Information(ex.Message);
+                return ApiResult<Mesa>.Fail(ex.Message);
             }
+        }
+
+        private bool MesaExists(int id)
+        {
+            return _context.Mesas.Any(e => e.Id == id);
         }
     }
 }

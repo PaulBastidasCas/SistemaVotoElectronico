@@ -22,7 +22,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            if (User.Identity!.IsAuthenticated) return RedirectToAction("Index", "Home");
+            if (User.Identity!.IsAuthenticated) return RedirectToAction("Perfil", "Home");
             return View();
         }
 
@@ -37,14 +37,14 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 var response = await _httpClient.PostAsync($"{_apiBaseUrl}/Login", content);
                 var responseString = await response.Content.ReadAsStringAsync();
 
-                var resultado = JsonConvert.DeserializeObject<ApiResult<dynamic>>(responseString);
+                var resultado = JsonConvert.DeserializeObject<ApiResult<LoginResponseDto>>(responseString);
 
-                if (resultado != null && resultado.Success)
+                if (resultado != null && resultado.Success && resultado.Data != null)
                 {
-                    string rol = (string)resultado.Data.Rol;
-                    string nombre = (string)resultado.Data.Nombre;
-                    string correo = (string)resultado.Data.Correo;
-                    string id = (string)resultado.Data.Id;
+                    string rol = resultado.Data.Rol;
+                    string nombre = resultado.Data.Nombre;
+                    string correo = resultado.Data.Correo;
+                    string id = resultado.Data.Id.ToString(); 
 
                     var claims = new List<Claim>
                     {
@@ -55,20 +55,11 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     };
 
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
 
-                    if (rol == "Administrador")
-                    {
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else if (rol == "Candidato")
-                    {
-                        return RedirectToAction("Index", "Home"); 
-                    }
-                    else
-                    {
-                        return RedirectToAction("Index", "Home"); 
-                    }
+                    var principal = new ClaimsPrincipal(identity);
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                    return RedirectToAction("Perfil", "Home");
                 }
 
                 ViewData["Error"] = resultado?.Message ?? "Credenciales inválidas";
@@ -130,5 +121,13 @@ namespace SistemaVotoElectronico.MVC.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
+    }
+
+    public class LoginResponseDto
+    {
+        public string Nombre { get; set; }
+        public string Correo { get; set; }
+        public string Rol { get; set; }
+        public int Id { get; set; }
     }
 }

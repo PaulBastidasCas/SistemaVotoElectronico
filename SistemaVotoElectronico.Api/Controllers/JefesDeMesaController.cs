@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
+using SistemaVotoElectronico.Modelos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SistemaVotoElectronico.Modelos;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -22,65 +24,129 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/JefesDeMesa
         [HttpGet]
-        public async Task<ActionResult<ApiResult<List<JefeDeMesa>>>> GetAll()
+        public async Task<ActionResult<ApiResult<List<JefeDeMesa>>>> GetJefesDeMesa()
         {
-            var data = await _context.JefesDeMesa.Include(j => j.MesaAsignada).ToListAsync();
-            return ApiResult<List<JefeDeMesa>>.Ok(data);
+            try
+            {
+                var data = await _context.JefesDeMesa.ToListAsync();
+                Log.Information($"{data}");
+                return ApiResult<List<JefeDeMesa>>.Ok( data );
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex.Message);
+                return ApiResult<List<JefeDeMesa>>.Fail(ex.Message );
+            }
         }
 
         // GET: api/JefesDeMesa/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResult<JefeDeMesa>>> Get(int id)
+        public async Task<ActionResult<ApiResult<JefeDeMesa>>> GetJefeDeMesa(int id)
         {
-            var jefe = await _context.JefesDeMesa.Include(j => j.MesaAsignada).FirstOrDefaultAsync(x => x.Id == id);
-            if (jefe == null) return ApiResult<JefeDeMesa>.Fail("No encontrado");
-            return ApiResult<JefeDeMesa>.Ok(jefe);
+            try
+            {
+                var jefeDeMesa = await _context
+                    .JefesDeMesa
+                    .Include(e  => e.MesaAsignada)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (jefeDeMesa == null)
+                {
+
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<JefeDeMesa>.Fail("Datos no encontrados");
+                }
+                Log.Information($"{jefeDeMesa}");
+                return ApiResult<JefeDeMesa>.Ok(jefeDeMesa);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex.Message);
+                return ApiResult<JefeDeMesa>.Fail(ex.Message);
+            }
         }
 
         // PUT: api/JefesDeMesa/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResult<JefeDeMesa>>> Put(int id, JefeDeMesa jefe)
+        public async Task<ActionResult<ApiResult<JefeDeMesa>>> PutJefeDeMesa(int id, JefeDeMesa jefeDeMesa)
         {
-            if (id != jefe.Id) return ApiResult<JefeDeMesa>.Fail("ID incorrecto");
+            if (id != jefeDeMesa.Id)
+            {
+                Log.Information("Identificadores no coinciden");
+                return ApiResult<JefeDeMesa>.Fail("Los identificadores no coinciden");
+            }
 
-            var anterior = await _context.JefesDeMesa.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-            if (anterior == null) return ApiResult<JefeDeMesa>.Fail("No existe");
+            _context.Entry(jefeDeMesa).State = EntityState.Modified;
 
-            if (string.IsNullOrEmpty(jefe.Contrasena)) jefe.Contrasena = anterior.Contrasena;
-            else jefe.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefe.Contrasena);
-
-            _context.Entry(jefe).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex) 
+            {
+                if (!JefeDeMesaExists(id))
+                {
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<JefeDeMesa>.Fail("Datos no encontrados");
+                }
+                else
+                {
+                    Log.Information(ex.Message);
+                    return ApiResult<JefeDeMesa>.Fail(ex.Message);
+                }
+            }
+            Log.Information($"{null}");
             return ApiResult<JefeDeMesa>.Ok(null);
         }
 
         // POST: api/JefesDeMesa
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ApiResult<JefeDeMesa>>> Post(JefeDeMesa jefe)
+        public async Task<ActionResult<ApiResult<JefeDeMesa>>> PostJefeDeMesa(JefeDeMesa jefeDeMesa)
         {
             try
             {
-                if (!string.IsNullOrEmpty(jefe.Contrasena))
-                    jefe.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefe.Contrasena);
-
-                _context.JefesDeMesa.Add(jefe);
+                _context.JefesDeMesa.Add(jefeDeMesa);
                 await _context.SaveChangesAsync();
-                return ApiResult<JefeDeMesa>.Ok(jefe);
+                Log.Information($"{jefeDeMesa}");
+                return ApiResult<JefeDeMesa>.Ok(jefeDeMesa);
             }
-            catch (Exception ex) { return ApiResult<JefeDeMesa>.Fail(ex.Message); }
+            catch (Exception ex)
+            {
+                Log.Information(ex.Message);
+                return ApiResult<JefeDeMesa>.Fail(ex.Message);
+            }
         }
 
         // DELETE: api/JefesDeMesa/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ApiResult<bool>>> Delete(int id)
+        public async Task<ActionResult<ApiResult<JefeDeMesa>>> DeleteJefeDeMesa(int id)
         {
-            var jefe = await _context.JefesDeMesa.FindAsync(id);
-            if (jefe == null) return ApiResult<bool>.Fail("No encontrado");
-            _context.JefesDeMesa.Remove(jefe);
-            await _context.SaveChangesAsync();
-            return ApiResult<bool>.Ok(true);
+            try
+            {
+                var jefeDeMesa = await _context.JefesDeMesa.FindAsync(id);
+                if (jefeDeMesa == null)
+                {
+                    Log.Information("Datos no encontrados");
+                    return ApiResult<JefeDeMesa>.Fail("Datos no encontrados");
+                }
+
+                _context.JefesDeMesa.Remove(jefeDeMesa);
+                await _context.SaveChangesAsync();
+                Log.Information($"{null}");
+                return ApiResult<JefeDeMesa>.Ok(null);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex.Message);
+                return ApiResult<JefeDeMesa>.Fail(ex.Message);
+            }
+        }
+
+        private bool JefeDeMesaExists(int id)
+        {
+            return _context.JefesDeMesa.Any(e => e.Id == id);
         }
     }
 }

@@ -1,0 +1,22 @@
+﻿@model SistemaVotoElectronico.MVC.Models.PapeletaViewModel
+
+@{
+    ViewData["Title"] = "Voto Registrado";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card border-success shadow">
+        <div class="card-body p-5">
+            <h1 class="display-1 text-success mb-4">✅</h1>
+            <h2 class="text-success">¡Su voto ha sido registrado!</h2>
+            <p class="lead mt-3">Gracias por ejercer su derecho al voto.</p>
+            <p class="text-muted">Su código de enlace ha sido invalidado por seguridad.</p>
+
+            <hr />
+
+            <a asp-controller="Sufragio" asp-action="Index" class="btn btn-primary mt-3">
+                Volver al Inicio (Siguiente Votante)
+            </a>
+        </div>
+    </div>
+</div>

@@ -30,21 +30,34 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // POST: CandidatosController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Candidato model)
+        public async Task<IActionResult> Create(Candidato candidato)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var res = await Crud<Candidato>.CreateAsync(model);
-
-            if (res.Success)
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    candidato.Id = 0;
+
+                    candidato.ListaElectoral = null;
+
+                    var resultado = await Crud<Candidato>.CreateAsync(candidato);
+
+                    if (resultado.Success)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", $"Error API: {resultado.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error de conexión: {ex.Message}");
+                }
             }
-
-            ModelState.AddModelError("", res.Message);
-            return View(model);
+            return View(candidato);
         }
-
         // GET: CandidatosController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {

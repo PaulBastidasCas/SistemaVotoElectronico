@@ -1,0 +1,36 @@
+﻿@model SistemaVotoElectronico.MVC.Models.PapeletaViewModel
+
+@{
+    ViewData["Title"] = "Cabina de Votación";
+    Layout = "_Layout"; 
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3>🔐 Ingreso a Cabina</h3>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <p class="mb-4">Ingrese el <b>Código de Activación</b> que le proporcionó el Jefe de Mesa.</p>
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger">@ViewBag.Error</div>
+                    }
+
+                    <form asp-action="ValidarCodigo" method="post">
+                        <div class="form-group mb-4">
+                            <input type="text" name="codigoEnlace" class="form-control form-control-lg text-center"
+                                   placeholder="Ej: A1F9C2" style="font-size: 24px; letter-spacing: 5px; text-transform: uppercase;" required />
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg btn-block w-100">
+                            INGRESAR A VOTAR
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

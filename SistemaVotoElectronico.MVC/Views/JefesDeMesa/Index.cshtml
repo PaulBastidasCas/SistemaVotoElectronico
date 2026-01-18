@@ -1,4 +1,4 @@
-﻿@model IEnumerable<SistemaVotoElectronico.Modelos.Candidato>
+﻿@model IEnumerable<SistemaVotoElectronico.Modelos.JefeDeMesa>
 
 @{
     ViewData["Title"] = "Index";
@@ -25,16 +25,7 @@
                 @Html.DisplayNameFor(model => model.Correo)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Fotografia)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Rol)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.OrdenEnLista)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ListaElectoralId)
             </th>
             <th></th>
         </tr>
@@ -53,18 +44,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Correo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Fotografia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rol)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrdenEnLista)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ListaElectoralId)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |

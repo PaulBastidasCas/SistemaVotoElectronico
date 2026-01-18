@@ -1,0 +1,163 @@
+﻿@model dynamic
+
+@{
+    ViewData["Title"] = "Perfil de Usuario";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm text-center h-100">
+                <div class="card-body">
+                    <div class="mb-3 d-flex justify-content-center">
+                        @if (!string.IsNullOrEmpty(Model.Foto))
+                        {
+                            <img src="@Model.Foto" class="rounded-circle border" alt="Foto de perfil" style="width: 150px; height: 150px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">
+                                👤
+                            </div>
+                        }
+                    </div>
+
+                    <h3 class="card-title">@Model.Nombre</h3>
+                    <span class="badge bg-primary mb-3">@Model.Rol</span>
+                    <p class="text-muted"><small>@Model.Correo</small></p>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-around text-start">
+                        <div>
+                            <small class="text-muted d-block">@Model.Stat1Label</small>
+                            <strong>@Model.Stat1Value</strong>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">@Model.Stat2Label</small>
+                            <strong>@Model.Stat2Value</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 pb-4">
+                    <a href="@Url.Action("Logout", "Account")" class="btn btn-outline-danger w-100">
+                        🚪 Cerrar Sesión
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+
+            @if (Model.Rol == "Administrador")
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">🛠 Acciones Rápidas de Administrador</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Index", "Elecciones")" class="btn btn-outline-primary w-100 py-3">
+                                    📅 Gestionar Elecciones
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Index", "Mesas")" class="btn btn-outline-primary w-100 py-3">
+                                    🗳️ Gestionar Mesas
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Index", "PadronElectorales")" class="btn btn-outline-secondary w-100 py-3">
+                                    📋 Ver Padrón Electoral
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="@Url.Action("Index", "Votos")" class="btn btn-outline-secondary w-100 py-3">
+                                    📊 Auditoría de Votos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            else if (Model.Rol == "Candidato")
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">📢 Gestión de Candidatura</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Gestione aquí la información pública que verán los votantes.</p>
+                        <form method="post" action="#">
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">Biografía / Propuestas:</label>
+                                <textarea class="form-control" rows="4" placeholder="Escriba aquí sus propuestas principales..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-warning text-dark fw-bold" disabled title="Funcionalidad en desarrollo">
+                                💾 Guardar Cambios
+                            </button>
+                            <small class="text-muted d-block mt-2">* La edición de perfil está deshabilitada durante la auditoría.</small>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            else if (Model.Rol == "JefeDeMesa")
+            {
+                <div class="card shadow-sm mb-4 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">👮 Panel de Control de Mesa</h5>
+                    </div>
+                    <div class="card-body text-center p-5">
+                        <h4 class="card-title">Autorización de Votantes</h4>
+                        <p class="card-text">
+                            Utilice esta herramienta para buscar ciudadanos en el padrón, validar su identidad y generar códigos de enlace únicos.
+                        </p>
+                        <a href="@Url.Action("Autorizar", "PadronElectorales")" class="btn btn-primary btn-lg px-5 shadow">
+                            🔍 Buscar Votante y Generar Código
+                        </a>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <strong>Nota:</strong> Recuerde verificar la cédula física del votante antes de generar el código.
+                </div>
+            }
+
+            else if (Model.Rol == "Votante")
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">📜 Historial de Participación</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Items != null && Model.Items.Count > 0)
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var item in Model.Items)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>@item.Titulo</strong>
+                                            <br />
+                                            <small class="text-muted">Estado: Registrado</small>
+                                        </div>
+                                        <span class="badge bg-success rounded-pill">Voto Emitido</span>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <p class="mb-0">Todavía no ha participado en ninguna elección registrada.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

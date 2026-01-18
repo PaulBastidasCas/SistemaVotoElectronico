@@ -47,7 +47,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 var eleccion = await _context
                     .Elecciones
-                    .Include(e  => e.Listas)
+                    .Include(e => e.Listas)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (eleccion == null)

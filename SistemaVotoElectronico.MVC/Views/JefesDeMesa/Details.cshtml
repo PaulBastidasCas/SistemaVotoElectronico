@@ -1,4 +1,4 @@
-﻿@model SistemaVotoElectronico.Modelos.Candidato
+﻿@model SistemaVotoElectronico.Modelos.JefeDeMesa
 
 @{
     ViewData["Title"] = "Details";
@@ -7,7 +7,7 @@
 <h1>Details</h1>
 
 <div>
-    <h4>Candidato</h4>
+    <h4>JefeDeMesa</h4>
     <hr />
     <dl class="row">
         <dt class = "col-sm-2">
@@ -35,28 +35,10 @@
             @Html.DisplayFor(model => model.Correo)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Fotografia)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Fotografia)
-        </dd>
-        <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Rol)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.Rol)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.OrdenEnLista)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.OrdenEnLista)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ListaElectoralId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ListaElectoralId)
         </dd>
     </dl>
 </div>

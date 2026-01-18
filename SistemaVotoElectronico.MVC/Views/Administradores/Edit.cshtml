@@ -12,25 +12,14 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Cedula" class="control-label"></label>
-                <input asp-for="Cedula" class="form-control" />
-                <span asp-validation-for="Cedula" class="text-danger"></span>
-            </div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Cedula" />
+            <input type="hidden" asp-for="Correo" />
+            <input type="hidden" asp-for="Rol" />
             <div class="form-group">
                 <label asp-for="NombreCompleto" class="control-label"></label>
                 <input asp-for="NombreCompleto" class="form-control" />
                 <span asp-validation-for="NombreCompleto" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Correo" class="control-label"></label>
-                <input asp-for="Correo" class="form-control" />
-                <span asp-validation-for="Correo" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Contrasena" class="control-label"></label>
@@ -41,11 +30,6 @@
                 <label asp-for="Fotografia" class="control-label"></label>
                 <input asp-for="Fotografia" class="form-control" />
                 <span asp-validation-for="Fotografia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Rol" class="control-label"></label>
-                <input asp-for="Rol" class="form-control" />
-                <span asp-validation-for="Rol" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />

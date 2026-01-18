@@ -17,6 +17,8 @@ namespace SistemaVotoElectronico.MVC
             Crud<PadronElectoral>.UrlBase = $"{api}/PadronElectorales";
             Crud<Votante>.UrlBase = $"{api}/Votantes";
             Crud<Voto>.UrlBase = $"{api}/Votos";
+            Crud<JefeDeMesa>.UrlBase = $"{api}/JefesDeMesa";
+            Crud<Mesa>.UrlBase = $"{api}/Mesas";
 
             var builder = WebApplication.CreateBuilder(args);
 

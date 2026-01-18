@@ -14,7 +14,7 @@ namespace SistemaVotoElectronico.Modelos
         public string Nombre { get; set; } 
         public string Ubicacion { get; set; }
 
-        public int EleccionId { get; set; }
+        public int? EleccionId { get; set; }
         [ForeignKey("EleccionId")]
         public Eleccion? Eleccion { get; set; }
 

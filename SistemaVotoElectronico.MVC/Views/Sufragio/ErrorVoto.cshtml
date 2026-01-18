@@ -1,0 +1,17 @@
+﻿@model SistemaVotoElectronico.MVC.Models.PapeletaViewModel
+
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container mt-5 text-center">
+    <div class="alert alert-danger shadow-lg p-5">
+        <h1 class="display-3">⚠️</h1>
+        <h2>Hubo un problema</h2>
+        <p class="lead">@ViewBag.Error</p>
+
+        <a asp-controller="Sufragio" asp-action="Index" class="btn btn-dark mt-4">
+            Intentar Nuevamente
+        </a>
+    </div>
+</div>

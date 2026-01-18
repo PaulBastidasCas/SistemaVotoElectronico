@@ -10,6 +10,7 @@ namespace SistemaVotoElectronico.Api
     {
         public static void Main(string[] args)
         {
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             //==============================================================
             // Configurar Serilog leyendo desde appsettings.json
             //==============================================================

@@ -82,7 +82,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Candidato>.DeleteAsync(id.ToString());
+            await Crud<PadronElectoral>.DeleteAsync(id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

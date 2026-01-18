@@ -1,4 +1,4 @@
-﻿@model IEnumerable<SistemaVotoElectronico.Modelos.Administrador>
+﻿@model IEnumerable<SistemaVotoElectronico.Modelos.Mesa>
 
 @{
     ViewData["Title"] = "Index";
@@ -16,19 +16,16 @@
                 @Html.DisplayNameFor(model => model.Id)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Cedula)
+                @Html.DisplayNameFor(model => model.Nombre)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.NombreCompleto)
+                @Html.DisplayNameFor(model => model.Ubicacion)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Correo)
+                @Html.DisplayNameFor(model => model.EleccionId)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Fotografia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rol)
+                @Html.DisplayNameFor(model => model.JefeDeMesaId)
             </th>
             <th></th>
         </tr>
@@ -40,19 +37,16 @@
                 @Html.DisplayFor(modelItem => item.Id)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Cedula)
+                @Html.DisplayFor(modelItem => item.Nombre)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.NombreCompleto)
+                @Html.DisplayFor(modelItem => item.Ubicacion)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Correo)
+                @Html.DisplayFor(modelItem => item.EleccionId)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Fotografia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rol)
+                @Html.DisplayFor(modelItem => item.JefeDeMesaId)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
