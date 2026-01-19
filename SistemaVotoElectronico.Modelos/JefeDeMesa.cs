@@ -18,6 +18,6 @@ namespace SistemaVotoElectronico.Modelos
 
         public string Rol { get; set; } = "JefeDeMesa";
         public Mesa? MesaAsignada { get; set; }
-        public List<PadronElectoral> HistorialVotos { get; set; } = new List<PadronElectoral>();
+        
     }
 }
