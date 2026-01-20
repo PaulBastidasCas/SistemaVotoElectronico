@@ -46,7 +46,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var administrador = await _context.Administradores.FindAsync(id);
+                var administrador = await _context.Administradores.FirstOrDefaultAsync(e => e.Id == id);
 
                 if (administrador == null)
                 {
@@ -109,8 +109,6 @@ namespace SistemaVotoElectronico.Api.Controllers
                     return ApiResult<Administrador>.Fail(ex.Message);
                 }
             }
-            Log.Information($"{null}");
-            return ApiResult<Administrador>.Ok(null);
         }
 
         // POST: api/Administradores

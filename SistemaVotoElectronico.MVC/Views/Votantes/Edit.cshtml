@@ -12,6 +12,10 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Cedula" />
+            <input type="hidden" asp-for="Correo" />
+            <input type="hidden" asp-for="Rol" />
             <div class="form-group">
                 <label asp-for="NombreCompleto" class="control-label"></label>
                 <input asp-for="NombreCompleto" class="form-control" />

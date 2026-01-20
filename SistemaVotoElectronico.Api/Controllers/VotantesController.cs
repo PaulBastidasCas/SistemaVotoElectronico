@@ -75,9 +75,6 @@ namespace SistemaVotoElectronico.Api.Controllers
                 Log.Information("Los identificadores no coinciden");
                 return ApiResult<Votante>.Fail("Los identificadores no coinciden");
             }
-
-
-
             try
             {
                 var votanteAnterior = await _context.Votantes

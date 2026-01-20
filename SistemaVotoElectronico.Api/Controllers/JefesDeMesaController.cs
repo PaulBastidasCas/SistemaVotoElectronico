@@ -77,11 +77,27 @@ namespace SistemaVotoElectronico.Api.Controllers
                 return ApiResult<JefeDeMesa>.Fail("Los identificadores no coinciden");
             }
 
-            _context.Entry(jefeDeMesa).State = EntityState.Modified;
-
             try
             {
+                var jefeAnterior = await _context.JefesDeMesa
+                                          .AsNoTracking()
+                                          .FirstOrDefaultAsync(x => x.Id == id);
+
+                if (jefeAnterior == null) return ApiResult<JefeDeMesa>.Fail("No existe");
+
+                if (string.IsNullOrEmpty(jefeDeMesa.Contrasena))
+                {
+                    jefeDeMesa.Contrasena = jefeAnterior.Contrasena;
+                }
+                else
+                {
+                    jefeDeMesa.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefeDeMesa.Contrasena);
+                }
+
+                _context.Entry(jefeDeMesa).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
+
+                return ApiResult<JefeDeMesa>.Ok(null);
             }
             catch (DbUpdateConcurrencyException ex) 
             {
@@ -96,8 +112,6 @@ namespace SistemaVotoElectronico.Api.Controllers
                     return ApiResult<JefeDeMesa>.Fail(ex.Message);
                 }
             }
-            Log.Information($"{null}");
-            return ApiResult<JefeDeMesa>.Ok(null);
         }
 
         // POST: api/JefesDeMesa
@@ -107,8 +121,14 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                if (string.IsNullOrEmpty(jefeDeMesa.Contrasena))
+                    return ApiResult<JefeDeMesa>.Fail("La contraseña es obligatoria");
+
+                jefeDeMesa.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefeDeMesa.Contrasena);
+
                 _context.JefesDeMesa.Add(jefeDeMesa);
                 await _context.SaveChangesAsync();
+
                 Log.Information($"{jefeDeMesa}");
                 return ApiResult<JefeDeMesa>.Ok(jefeDeMesa);
             }

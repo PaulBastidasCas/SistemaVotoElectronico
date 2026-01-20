@@ -27,12 +27,11 @@ namespace SistemaVotoElectronico.Api
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddDbContext<SistemaVotoElectronicoApiContext>(options =>
-
-            options.UseNpgsql(builder.Configuration.GetConnectionString("SistemaVotacionAPIContext.postgresql") ?? throw new InvalidOperationException("Connection string 'SistemaVotacionAPIContext' not found."))
-
+            options.UseNpgsql(builder.Configuration.GetConnectionString("SistemaVotacionAPIContext.postgresql")
+            ?? throw new InvalidOperationException("Connection string not found."))
             );
 
-            
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

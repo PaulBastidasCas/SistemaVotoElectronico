@@ -30,13 +30,15 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // POST: VotosController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Voto model)
+        public async Task<IActionResult> Create(VotoRequest model) 
         {
-            if(!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Voto>.CreateAsync(model);
+            Crud<VotoRequest>.UrlBase = "https://localhost:7178/api/Votos";
 
-            if (res.Success) 
+            var res = await Crud<VotoRequest>.CreateAsync(model);
+
+            if (res.Success)
             {
                 return RedirectToAction(nameof(Index));
             }

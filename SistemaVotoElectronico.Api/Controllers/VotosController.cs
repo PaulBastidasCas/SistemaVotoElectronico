@@ -23,7 +23,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         // GET: api/Votos
         [HttpGet]
-        public async Task<ActionResult<ApiResult<List<Voto>>>> GetVoto()
+        public async Task<ActionResult<ApiResult<List<Voto>>>> GetVotos()
         {
             try
             {
@@ -71,8 +71,8 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != voto.Id)
             {
-                Log.Information("Los identificadores no coinciden");
-                return ApiResult<Voto>.Fail("Los identificadores no coinciden");
+                Log.Information("No coinciden los identificadores");
+                return ApiResult<Voto>.Fail("No coinciden los identificadores");
             }
 
             _context.Entry(voto).State = EntityState.Modified;
@@ -101,46 +101,20 @@ namespace SistemaVotoElectronico.Api.Controllers
         // POST: api/Votos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ApiResult<Voto>>> PostVoto([FromBody] VotoRequest request)
+        public async Task<ActionResult<ApiResult<Voto>>> PostVoto(Voto voto)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var registroPadron = await _context.PadronElectorales
-                    .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace
-                                           && p.EleccionId == request.EleccionId);
-
-                if (registroPadron == null)
-                    return ApiResult<Voto>.Fail("Código de votación inválido.");
-
-                if (registroPadron.CodigoCanjeado)
-                    return ApiResult<Voto>.Fail("Este código ya fue utilizado. No se puede votar dos veces.");
-
-                var nuevoVoto = new Voto
-                {
-                    EleccionId = request.EleccionId,
-                    IdCandidatoSeleccionado = request.IdCandidatoSeleccionado, 
-                    IdListaSeleccionada = request.IdListaSeleccionada,
-                    FechaRegistro = DateTime.Now
-                };
-
-                _context.Votos.Add(nuevoVoto);
-
-                registroPadron.CodigoCanjeado = true;
-                registroPadron.FechaVoto = DateTime.Now;
-
-                if (request.IdListaSeleccionada != null) registroPadron.VotoPlanchaRealizado = true;
-
+                _context.Votos.Add(voto);
                 await _context.SaveChangesAsync();
+                Log.Information($"{voto}");
+                return ApiResult<Voto>.Ok(voto);
 
-                await transaction.CommitAsync();
-
-                return ApiResult<Voto>.Ok(nuevoVoto);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-                return ApiResult<Voto>.Fail("Error al registrar voto: " + ex.Message);
+                Log.Information(ex.Message);
+                return ApiResult<Voto>.Fail(ex.Message);
             }
         }
 
@@ -161,6 +135,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 await _context.SaveChangesAsync();
                 Log.Information($"{null}");
                 return ApiResult<Voto>.Ok(null);
+
             }
             catch (Exception ex)
             {

@@ -12,7 +12,6 @@ namespace SistemaVotoElectronico.Modelos
     {
         [Key] public Guid Id { get; set; }
         public int? EleccionId { get; set; }
-
         [ForeignKey("EleccionId")]
         public Eleccion? Eleccion { get; set; }
 

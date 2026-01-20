@@ -49,7 +49,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
-            return View(res.Data); ;
+            return View(res.Data);
         }
 
         // POST: PadronElectoralesController/Edit/5
@@ -60,7 +60,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var res = await Crud<PadronElectoral>.UpdateAsync(id.ToString(), model);
-
+            
             if (res.Success)
             {
                 return RedirectToAction(nameof(Index));

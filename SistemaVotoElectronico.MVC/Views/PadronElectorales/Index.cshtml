@@ -22,13 +22,25 @@
                 @Html.DisplayNameFor(model => model.EleccionId)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.MesaId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CodigoEnlace)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FechaGeneracionCodigo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CodigoCanjeado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FechaVoto)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.VotoPlanchaRealizado)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.VotoNominalRealizado)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.FechaVoto)
             </th>
             <th></th>
         </tr>
@@ -46,13 +58,25 @@
                 @Html.DisplayFor(modelItem => item.EleccionId)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.MesaId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CodigoEnlace)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FechaGeneracionCodigo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CodigoCanjeado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.FechaVoto)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.VotoPlanchaRealizado)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.VotoNominalRealizado)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.FechaVoto)
             </td>
             <td>
                 @Html.ActionLink("Edit", "Edit", new { id=item.Id }) |
