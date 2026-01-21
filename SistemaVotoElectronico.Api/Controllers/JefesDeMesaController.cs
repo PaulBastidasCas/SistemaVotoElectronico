@@ -1,13 +1,8 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SistemaVotoElectronico.Api.Data;
 using SistemaVotoElectronico.Modelos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -28,7 +23,10 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var data = await _context.JefesDeMesa.ToListAsync();
+                var data = await _context
+                    .JefesDeMesa
+                    .Include(e => e.MesaAsignada) 
+                    .ToListAsync();
                 Log.Information($"{data}");
                 return ApiResult<List<JefeDeMesa>>.Ok( data );
             }

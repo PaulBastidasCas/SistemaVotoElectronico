@@ -1,12 +1,8 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SistemaVotoElectronico.Api.Data;
 using SistemaVotoElectronico.Modelos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -19,6 +15,59 @@ namespace SistemaVotoElectronico.Api.Controllers
         public VotosController(SistemaVotoElectronicoApiContext context)
         {
             _context = context;
+        }
+
+        [HttpPost("emitir")]
+        public async Task<ActionResult<ApiResult<string>>> EmitirVoto([FromBody] VotoRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var registroPadron = await _context.PadronElectorales
+                    .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace
+                                           && p.EleccionId == request.EleccionId);
+
+                if (registroPadron == null)
+                {
+                    Log.Warning($"Intento de voto fallido. Código no existe o elección incorrecta: {request.CodigoEnlace}");
+                    return ApiResult<string>.Fail("El código de enlace no es válido para esta elección.");
+                }
+
+                if (registroPadron.CodigoCanjeado)
+                {
+                    Log.Warning($"Intento de doble voto. Código: {request.CodigoEnlace}");
+                    return ApiResult<string>.Fail("Este código de activación ya fue utilizado previamente.");
+                }
+
+                var nuevoVoto = new Voto
+                {
+                    Id = Guid.NewGuid(), 
+                    EleccionId = request.EleccionId,
+                    IdListaSeleccionada = request.IdListaSeleccionada,
+                    IdCandidatoSeleccionado = request.IdCandidatoSeleccionado,
+                    FechaRegistro = DateTime.Now
+                };
+
+                _context.Votos.Add(nuevoVoto);
+
+                registroPadron.CodigoCanjeado = true;
+                registroPadron.FechaVoto = DateTime.Now;
+
+                registroPadron.VotoPlanchaRealizado = (request.IdListaSeleccionada != null);
+                registroPadron.VotoNominalRealizado = (request.IdCandidatoSeleccionado != null);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                Log.Information($"Voto registrado con éxito. Código quemado: {request.CodigoEnlace}");
+                return ApiResult<string>.Ok("Su voto ha sido registrado correctamente.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Log.Error($"Error crítico al emitir voto: {ex.Message}");
+                return ApiResult<string>.Fail("Ocurrió un error interno al procesar su voto. Intente nuevamente.");
+            }
         }
 
         // GET: api/Votos

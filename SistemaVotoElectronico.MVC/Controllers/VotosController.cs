@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
 
@@ -7,36 +6,44 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class VotosController : Controller
     {
-        // GET: VotosController
+        private readonly string _endpoint = "http://localhost:5050/api/Votos";
+
         public async Task<IActionResult> Index()
         {
-            var res = await Crud<Voto>.ReadAllAsync();
+            var res = await Crud<Voto>.ReadAllAsync(_endpoint);
             return View(res.Data ?? new List<Voto>());
         }
 
-        // GET: VotosController/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var res = await Crud<Voto>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Voto>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // GET: VotosController/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: VotosController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(VotoRequest model) 
+        public async Task<IActionResult> Create(Voto model) 
         {
+            if (model.FechaRegistro == default)
+            {
+                model.FechaRegistro = DateTime.Now;
+            }
+
+            if (model.Id == Guid.Empty)
+            {
+                model.Id = Guid.NewGuid();
+            }
+
+            ModelState.Remove("Eleccion");
+
             if (!ModelState.IsValid) return View(model);
 
-            Crud<VotoRequest>.UrlBase = "https://localhost:7178/api/Votos";
-
-            var res = await Crud<VotoRequest>.CreateAsync(model);
+            var res = await Crud<Voto>.CreateAsync(_endpoint, model);
 
             if (res.Success)
             {
@@ -47,21 +54,19 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: VotosController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<Voto>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Voto>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: VotosController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Voto model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Voto>.UpdateAsync(id.ToString(), model);
+            var res = await Crud<Voto>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
@@ -72,19 +77,17 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: VotosController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<Voto>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Voto>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: VotosController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Voto>.DeleteAsync(id.ToString());
+            await Crud<Voto>.DeleteAsync(_endpoint, id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
 
@@ -7,83 +6,154 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class PadronElectoralesController : Controller
     {
-        // GET: PadronElectoralesController
-        public async Task<IActionResult> Index()
-        {
-            var res = await Crud<PadronElectoral>.ReadAllAsync();
-            return View(res.Data ?? new List<PadronElectoral>());
-        }
+        private readonly string _baseApiUrl = "http://localhost:5050/api";
 
-        // GET: PadronElectoralesController/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
-            return View(res.Data);
-        }
-
-        // GET: PadronElectoralesController/Create
-        public IActionResult Create()
+        [HttpGet]
+        public IActionResult Autorizar()
         {
             return View();
         }
 
-        // POST: PadronElectoralesController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PadronElectoral model)
+        public async Task<IActionResult> GenerarCodigo(string cedula)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var res = await Crud<PadronElectoral>.CreateAsync(model);
-
-            if (res.Success)
+            if (string.IsNullOrWhiteSpace(cedula))
             {
-                return RedirectToAction(nameof(Index));
+                ViewBag.Error = "Ingrese el número de cédula.";
+                return View("Autorizar");
             }
 
-            ModelState.AddModelError("", res.Message);
-            return View(model);
+            // 1. OBTENER ELECCIONES 
+            var resultadoElecciones = await Crud<Eleccion>.ReadAllAsync($"{_baseApiUrl}/Elecciones");
+            var eleccionActiva = resultadoElecciones.Data?.FirstOrDefault(e => e.Activa);
+
+            if (eleccionActiva == null)
+            {
+                ViewBag.Error = "No hay elecciones activas configuradas en el sistema.";
+                return View("Autorizar");
+            }
+
+            // 2. OBTENER JEFE DE MESA ACTUAL
+            var correoJefe = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var resultadoJefes = await Crud<JefeDeMesa>.ReadAllAsync($"{_baseApiUrl}/JefesDeMesa");
+
+            var jefeActual = resultadoJefes.Data?.FirstOrDefault(j =>
+                j.Correo != null && j.Correo.Equals(correoJefe, StringComparison.OrdinalIgnoreCase));
+
+            if (jefeActual == null || jefeActual.MesaAsignada == null)
+            {
+                ViewBag.Error = "Su usuario no tiene una mesa asignada para gestionar.";
+                return View("Autorizar");
+            }
+
+            // 3. PREPARAR EL REQUEST (DTO)
+            var request = new GenerarCodigoRequest
+            {
+                CedulaVotante = cedula.Trim(),
+                EleccionId = eleccionActiva.Id,
+                MesaId = jefeActual.MesaAsignada.Id
+            };
+
+            // 4. LLAMAR A LA API 
+            var resultadoCodigo = await Crud<object>.PostAndGetResultAsync<GenerarCodigoRequest, string>(
+                $"{_baseApiUrl}/PadronElectorales/generar-codigo",
+                request
+            );
+
+            if (resultadoCodigo.Success)
+            {
+                ViewBag.CodigoGenerado = resultadoCodigo.Data; 
+                ViewBag.Cedula = cedula;
+            }
+            else
+            {
+                ViewBag.Error = resultadoCodigo.Message;
+            }
+
+            return View("Autorizar");
         }
 
-        // GET: PadronElectoralesController/Edit/5
+        public async Task<IActionResult> Index()
+        {
+            var res = await Crud<PadronElectoral>.ReadAllAsync($"{_baseApiUrl}/PadronElectorales");
+            return View(res.Data ?? new List<PadronElectoral>());
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var res = await Crud<PadronElectoral>.ReadByAsync($"{_baseApiUrl}/PadronElectorales", "Id", id.ToString());
+            if (res.Data == null) return NotFound();
+            return View(res.Data);
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(PadronElectoral padronElectoral)
+        {
+            ModelState.Remove("Votante");
+            ModelState.Remove("Mesa");
+            ModelState.Remove("Eleccion");
+
+            if (ModelState.IsValid)
+            {
+                var res = await Crud<PadronElectoral>.CreateAsync($"{_baseApiUrl}/PadronElectorales", padronElectoral);
+                if (res.Success) return RedirectToAction(nameof(Index));
+
+                ModelState.AddModelError("", res.Message);
+            }
+
+            return View(padronElectoral);
+        }
+
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<PadronElectoral>.ReadByAsync($"{_baseApiUrl}/PadronElectorales", "Id", id.ToString());
+            if (res.Data == null) return NotFound();
+
             return View(res.Data);
         }
 
-        // POST: PadronElectoralesController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PadronElectoral model)
+        public async Task<IActionResult> Edit(int id, PadronElectoral padronElectoral)
         {
-            if (!ModelState.IsValid) return View(model);
+            if (id != padronElectoral.Id) return NotFound();
 
-            var res = await Crud<PadronElectoral>.UpdateAsync(id.ToString(), model);
-            
-            if (res.Success)
+            ModelState.Remove("Votante");
+            ModelState.Remove("Mesa");
+            ModelState.Remove("Eleccion");
+
+            if (ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                var res = await Crud<PadronElectoral>.UpdateAsync($"{_baseApiUrl}/PadronElectorales", id.ToString(), padronElectoral);
+                if (res.Success) return RedirectToAction(nameof(Index));
+
+                ModelState.AddModelError("", res.Message);
             }
 
-            ModelState.AddModelError("", res.Message);
-            return View(model);
+            return View(padronElectoral);
         }
 
-        // GET: PadronElectoralesController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<PadronElectoral>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<PadronElectoral>.ReadByAsync($"{_baseApiUrl}/PadronElectorales", "Id", id.ToString());
+            if (res.Data == null) return NotFound();
             return View(res.Data);
         }
 
-        // POST: PadronElectoralesController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<PadronElectoral>.DeleteAsync(id.ToString());
+            await Crud<PadronElectoral>.DeleteAsync($"{_baseApiUrl}/PadronElectorales", id.ToString());
             return RedirectToAction(nameof(Index));
         }
+
     }
 }

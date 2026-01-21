@@ -1,73 +1,55 @@
 ﻿@model SistemaVotoElectronico.Modelos.PadronElectoral
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Asignar Votante a Mesa";
 }
 
-<h1>Create</h1>
+<h1>Asignar Votante</h1>
 
-<h4>PadronElectoral</h4>
-<hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="VotanteId" class="control-label"></label>
-                <input asp-for="VotanteId" class="form-control" />
-                <span asp-validation-for="VotanteId" class="text-danger"></span>
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Vincular Votante - Mesa - Elección</h5>
             </div>
-            <div class="form-group">
-                <label asp-for="EleccionId" class="control-label"></label>
-                <input asp-for="EleccionId" class="form-control" />
-                <span asp-validation-for="EleccionId" class="text-danger"></span>
+            <div class="card-body">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="VotanteId" class="control-label fw-bold">Votante (ID)</label>
+                        <input asp-for="VotanteId" class="form-control" placeholder="Ingrese el ID del votante" />
+                        <span asp-validation-for="VotanteId" class="text-danger"></span>
+                        <small class="text-muted">Busque el ID en la lista de Votantes</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="EleccionId" class="control-label fw-bold">Elección (ID)</label>
+                        <input asp-for="EleccionId" class="form-control" placeholder="Ingrese el ID de la elección" />
+                        <span asp-validation-for="EleccionId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="MesaId" class="control-label fw-bold">Mesa Asignada (ID)</label>
+                        <input asp-for="MesaId" class="form-control" placeholder="Ingrese el ID de la mesa" />
+                        <span asp-validation-for="MesaId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <input type="submit" value="Asignar al Padrón" class="btn btn-primary w-100" />
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="MesaId" class="control-label"></label>
-                <input asp-for="MesaId" class="form-control" />
-                <span asp-validation-for="MesaId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CodigoEnlace" class="control-label"></label>
-                <input asp-for="CodigoEnlace" class="form-control" />
-                <span asp-validation-for="CodigoEnlace" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="FechaGeneracionCodigo" class="control-label"></label>
-                <input asp-for="FechaGeneracionCodigo" class="form-control" />
-                <span asp-validation-for="FechaGeneracionCodigo" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="CodigoCanjeado" /> @Html.DisplayNameFor(model => model.CodigoCanjeado)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="FechaVoto" class="control-label"></label>
-                <input asp-for="FechaVoto" class="form-control" />
-                <span asp-validation-for="FechaVoto" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="VotoPlanchaRealizado" /> @Html.DisplayNameFor(model => model.VotoPlanchaRealizado)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="VotoNominalRealizado" /> @Html.DisplayNameFor(model => model.VotoNominalRealizado)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div class="mt-3">
+    <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

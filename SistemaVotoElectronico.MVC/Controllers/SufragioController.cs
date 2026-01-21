@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
@@ -11,7 +10,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
     public class SufragioController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBase = "http://localhost:5050/api"; 
+        private readonly string _apiBase = "http://localhost:5050/api";
 
         public SufragioController()
         {
@@ -35,7 +34,8 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             try
             {
-                var eleccionesRes = await Crud<Eleccion>.ReadAllAsync();
+                var eleccionesRes = await Crud<Eleccion>.ReadAllAsync($"{_apiBase}/Elecciones");
+
                 if (!eleccionesRes.Success) throw new Exception("Error al conectar con el sistema de elecciones.");
 
                 var eleccionActiva = eleccionesRes.Data?.FirstOrDefault(e => e.Activa);
@@ -45,8 +45,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     ViewBag.Error = "No hay ninguna elección activa en este momento.";
                     return View("Index");
                 }
-
-                var listasRes = await Crud<ListaElectoral>.ReadAllAsync();
+                var listasRes = await Crud<ListaElectoral>.ReadAllAsync($"{_apiBase}/ListaElectorales");
 
                 var listasFiltradas = listasRes.Data?
                     .Where(l => l.EleccionId == eleccionActiva.Id)
@@ -79,8 +78,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             int? idLista = null;
             int? idCandidato = null;
-
-            string[] partes = seleccion.Split('-'); 
+            string[] partes = seleccion.Split('-');
             int idSeleccionado = int.Parse(partes[1]);
 
             if (partes[0] == "L") idLista = idSeleccionado;
@@ -98,18 +96,20 @@ namespace SistemaVotoElectronico.MVC.Controllers
             {
                 var json = JsonConvert.SerializeObject(votoRequest);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                string endpointSeguro = $"{_apiBase}/Votos/emitir";
 
-                var response = await _httpClient.PostAsync($"{_apiBase}/Votos", content);
+                var response = await _httpClient.PostAsync(endpointSeguro, content);
                 var responseString = await response.Content.ReadAsStringAsync();
-                var apiResult = JsonConvert.DeserializeObject<ApiResult<object>>(responseString);
 
-                if (response.IsSuccessStatusCode && apiResult.Success)
+                var apiResult = JsonConvert.DeserializeObject<ApiResult<string>>(responseString);
+
+                if (response.IsSuccessStatusCode && (apiResult?.Success ?? false))
                 {
                     return RedirectToAction("Confirmacion");
                 }
                 else
                 {
-                    ViewBag.Error = apiResult?.Message ?? "No se pudo registrar el voto.";
+                    ViewBag.Error = apiResult?.Message ?? "No se pudo registrar el voto. Intente nuevamente.";
                     return View("ErrorVoto");
                 }
             }

@@ -1,14 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace SistemaVotoElectronico.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class version2 : Migration
+    public partial class versionPadron : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -39,8 +38,8 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(type: "text", nullable: false),
                     TipoEleccion = table.Column<string>(type: "text", nullable: false),
-                    FechaInicio = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FechaFinalizacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    FechaInicio = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    FechaFinalizacion = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Activa = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -114,7 +113,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     EleccionId = table.Column<int>(type: "integer", nullable: true),
                     IdCandidatoSeleccionado = table.Column<int>(type: "integer", nullable: true),
                     IdListaSeleccionada = table.Column<int>(type: "integer", nullable: true),
-                    FechaRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    FechaRegistro = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -134,7 +133,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(type: "text", nullable: false),
                     Ubicacion = table.Column<string>(type: "text", nullable: false),
-                    EleccionId = table.Column<int>(type: "integer", nullable: false),
+                    EleccionId = table.Column<int>(type: "integer", nullable: true),
                     JefeDeMesaId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
@@ -144,8 +143,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                         name: "FK_Mesas_Elecciones_EleccionId",
                         column: x => x.EleccionId,
                         principalTable: "Elecciones",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Mesas_JefesDeMesa_JefeDeMesaId",
                         column: x => x.JefeDeMesaId,
@@ -188,9 +186,9 @@ namespace SistemaVotoElectronico.Api.Migrations
                     EleccionId = table.Column<int>(type: "integer", nullable: true),
                     MesaId = table.Column<int>(type: "integer", nullable: true),
                     CodigoEnlace = table.Column<string>(type: "text", nullable: true),
-                    FechaGeneracionCodigo = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    FechaGeneracionCodigo = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     CodigoCanjeado = table.Column<bool>(type: "boolean", nullable: false),
-                    FechaVoto = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    FechaVoto = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     VotoPlanchaRealizado = table.Column<bool>(type: "boolean", nullable: false),
                     VotoNominalRealizado = table.Column<bool>(type: "boolean", nullable: false)
                 },

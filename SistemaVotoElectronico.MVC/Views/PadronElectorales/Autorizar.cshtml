@@ -1,0 +1,101 @@
+﻿@{
+    ViewData["Title"] = "Autorizar Votante";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h3 class="mb-1"><i class="bi bi-shield-lock-fill"></i> Autorización de Votante</h3>
+                    <p class="mb-0 small text-white-50">Sistema de Control de Mesa Electoral</p>
+                </div>
+
+                <div class="card-body p-5">
+
+                    @if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                            <div>
+                                <strong>Error de Validación:</strong><br />
+                                @ViewBag.Error
+                            </div>
+                        </div>
+                    }
+
+                    @if (ViewBag.CodigoGenerado != null)
+                    {
+                        <div class="text-center animate__animated animate__fadeIn">
+                            <div class="alert alert-success border-success bg-opacity-10 py-4">
+                                <h5 class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ¡Votante Autorizado!</h5>
+                                <p class="mb-0">Cédula verificada: <strong>@ViewBag.Cedula</strong></p>
+                            </div>
+
+                            <hr class="my-4 text-muted" />
+
+                            <p class="text-muted mb-2">Entregue el siguiente código al votante:</p>
+
+                            <div class="display-1 fw-bold text-primary letter-spacing-3 my-3 user-select-all">
+                                @ViewBag.CodigoGenerado
+                            </div>
+
+                            <p class="text-danger small mb-4">
+                                <i class="bi bi-info-circle"></i> Este código es válido para un solo uso.
+                            </p>
+
+                            <div class="d-grid">
+                                <a href="@Url.Action("Autorizar")" class="btn btn-outline-secondary btn-lg">
+                                    <i class="bi bi-arrow-repeat"></i> Atender Siguiente Votante
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center mb-4">
+                            <p class="text-muted">
+                                Solicite la cédula de identidad física al ciudadano e ingrese el número a continuación.
+                            </p>
+                        </div>
+
+                        <form asp-action="GenerarCodigo" method="post" autocomplete="off">
+                            <div class="form-floating mb-4">
+                                <input type="text" name="cedula" class="form-control form-control-lg text-center fs-3 letter-spacing-2"
+                                       id="inputCedula" placeholder="Número de Cédula" required autofocus
+                                       pattern="[0-9]*" inputmode="numeric">
+                                <label for="inputCedula" class="text-center w-100">Número de Cédula</label>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg py-3 shadow-sm transition-hover">
+                                    <i class="bi bi-search"></i> Validar y Generar Código
+                                </button>
+                            </div>
+                        </form>
+                    }
+
+                </div>
+                <div class="card-footer bg-light text-center text-muted py-3">
+                    <small>Asegúrese de verificar la identidad visualmente.</small>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .letter-spacing-2 {
+        letter-spacing: 2px;
+    }
+
+    .letter-spacing-3 {
+        letter-spacing: 5px;
+    }
+
+    .transition-hover:hover {
+        transform: translateY(-2px);
+    }
+</style>

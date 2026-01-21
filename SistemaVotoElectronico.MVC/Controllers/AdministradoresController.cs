@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
 
@@ -7,17 +6,19 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class AdministradoresController : Controller
     {
+        private readonly string _endpoint = "http://localhost:5050/api/Administradores";
+
         // GET: AdministradoresController
         public async Task<IActionResult> Index()
         {
-            var res = await Crud<Administrador>.ReadAllAsync();
+            var res = await Crud<Administrador>.ReadAllAsync(_endpoint);
             return View(res.Data ?? new List<Administrador>());
         }
 
         // GET: AdministradoresController/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Administrador>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
@@ -34,7 +35,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Administrador>.CreateAsync(model);
+            var res = await Crud<Administrador>.CreateAsync(_endpoint, model);
 
             if (res.Success)
             {
@@ -48,7 +49,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // GET: AdministradoresController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Administrador>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
@@ -59,7 +60,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Administrador>.UpdateAsync(id.ToString(), model);
+            var res = await Crud<Administrador>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
@@ -73,7 +74,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // GET: AdministradoresController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<Administrador>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Administrador>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
@@ -82,7 +83,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Administrador>.DeleteAsync(id.ToString());
+            await Crud<Administrador>.DeleteAsync(_endpoint, id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

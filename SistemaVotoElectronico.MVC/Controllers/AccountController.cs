@@ -44,7 +44,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     string rol = resultado.Data.Rol;
                     string nombre = resultado.Data.Nombre;
                     string correo = resultado.Data.Correo;
-                    string id = resultado.Data.Id.ToString(); 
+                    string id = resultado.Data.Id.ToString();
 
                     var claims = new List<Claim>
                     {
@@ -86,19 +86,19 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             try
             {
-                Crud<Votante>.UrlBase = $"{_apiBaseUrl}/Votantes";
+                string endpoint = $"{_apiBaseUrl}/Votantes";
 
                 var nuevoVotante = new Votante
                 {
                     Cedula = modelo.Cedula,
                     NombreCompleto = modelo.NombreCompleto,
                     Correo = modelo.Correo,
-                    Contrasena = modelo.Contrasena, 
+                    Contrasena = modelo.Contrasena,
                     Rol = "Votante",
-                    Fotografia = ""  
+                    Fotografia = ""
                 };
 
-                var resultado = await Crud<Votante>.CreateAsync(nuevoVotante);
+                var resultado = await Crud<Votante>.CreateAsync(endpoint, nuevoVotante);
 
                 if (resultado.Success)
                 {

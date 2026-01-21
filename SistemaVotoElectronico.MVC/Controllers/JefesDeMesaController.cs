@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
 
@@ -7,35 +6,32 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class JefesDeMesaController : Controller
     {
-        // GET: JefesDeMesaController
+        private readonly string _endpoint = "http://localhost:5050/api/JefesDeMesa";
+
         public async Task<IActionResult> Index()
         {
-            var res = await Crud<JefeDeMesa>.ReadAllAsync();
+            var res = await Crud<JefeDeMesa>.ReadAllAsync(_endpoint);
             return View(res.Data ?? new List<JefeDeMesa>());
         }
 
-        // GET: JefesDeMesaController/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var res = await Crud<JefeDeMesa>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<JefeDeMesa>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // GET: JefesDeMesaController/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: JefesDeMesaController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(JefeDeMesa model)
         {
-
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<JefeDeMesa>.CreateAsync(model);
+            var res = await Crud<JefeDeMesa>.CreateAsync(_endpoint, model);
 
             if (res.Success)
             {
@@ -46,21 +42,19 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: JefesDeMesaController/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<JefeDeMesa>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<JefeDeMesa>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: JefesDeMesaController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, JefeDeMesa model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<JefeDeMesa>.UpdateAsync(id.ToString(), model);
+            var res = await Crud<JefeDeMesa>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
@@ -71,19 +65,17 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: JefesDeMesaController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<JefeDeMesa>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<JefeDeMesa>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: JefesDeMesaController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<JefeDeMesa>.DeleteAsync(id.ToString());
+            await Crud<JefeDeMesa>.DeleteAsync(_endpoint, id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
 
@@ -7,27 +6,25 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class CandidatosController : Controller
     {
-        // GET: CandidatosController
+        private readonly string _endpoint = "http://localhost:5050/api/Candidatos";
+
         public async Task<ActionResult> Index()
         {
-            var res = await Crud<Candidato>.ReadAllAsync();
+            var res = await Crud<Candidato>.ReadAllAsync(_endpoint);
             return View(res.Data ?? new List<Candidato>());
         }
 
-        // GET: CandidatosController/Details/5
         public async Task<ActionResult> Details(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // GET: CandidatosController/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: CandidatosController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Candidato candidato)
@@ -37,10 +34,9 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 try
                 {
                     candidato.Id = 0;
-
                     candidato.ListaElectoral = null;
 
-                    var resultado = await Crud<Candidato>.CreateAsync(candidato);
+                    var resultado = await Crud<Candidato>.CreateAsync(_endpoint, candidato);
 
                     if (resultado.Success)
                     {
@@ -58,21 +54,20 @@ namespace SistemaVotoElectronico.MVC.Controllers
             }
             return View(candidato);
         }
-        // GET: CandidatosController/Edit/5
+
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
-        } 
+        }
 
-        // POST: CandidatosController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Candidato model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var res = await Crud<Candidato>.UpdateAsync(id.ToString(), model);
+            var res = await Crud<Candidato>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
@@ -83,19 +78,17 @@ namespace SistemaVotoElectronico.MVC.Controllers
             return View(model);
         }
 
-        // GET: CandidatosController/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync("Id", id.ToString());
+            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
             return View(res.Data);
         }
 
-        // POST: CandidatosController/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Candidato>.DeleteAsync(id.ToString());
+            await Crud<Candidato>.DeleteAsync(_endpoint, id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

@@ -42,15 +42,20 @@
                 <input asp-for="EleccionId" class="form-control" />
                 <span asp-validation-for="EleccionId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar Cambios" class="btn btn-primary" />
+
+                @if (User.IsInRole("Candidato"))
+                {
+                    <a asp-controller="Home" asp-action="Perfil" class="btn btn-secondary">Cancelar y Volver</a>
+                }
+                else
+                {
+                    <a asp-action="Index" class="btn btn-secondary">Volver al Listado</a>
+                }
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

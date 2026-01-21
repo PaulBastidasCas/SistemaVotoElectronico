@@ -1,13 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
+using SistemaVotoElectronico.Api.Data;
 using SistemaVotoElectronico.Modelos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -22,58 +16,80 @@ namespace SistemaVotoElectronico.Api.Controllers
             _context = context;
         }
 
-        // GET: api/PadronElectorales
         [HttpGet]
-        public async Task<ActionResult<ApiResult<List<PadronElectoral>>>> GetPadronElectoral()
+        public async Task<ActionResult<ApiResult<List<PadronElectoral>>>> GetPadronElectorales()
         {
             try
             {
-                var data = await _context.PadronElectorales.ToListAsync();
-                Log.Information($"{data}");
+                var data = await _context.PadronElectorales
+                    .Include(p => p.Votante)  
+                    .Include(p => p.Mesa)     
+                    .Include(p => p.Eleccion) 
+                    .ToListAsync();
+
                 return ApiResult<List<PadronElectoral>>.Ok(data);
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<List<PadronElectoral>>.Fail(ex.Message);
             }
         }
 
-        // GET: api/PadronElectorales/5
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResult<PadronElectoral>>> GetPadronElectoral(int id)
         {
             try
             {
-                var padronElectoral = await _context
-                    .PadronElectorales
-                    .Include(e => e.Eleccion)
-                    .FirstOrDefaultAsync(e => e.Id == id);
+                var padronElectoral = await _context.PadronElectorales
+                    .Include(p => p.Votante)
+                    .Include(p => p.Mesa)
+                    .Include(p => p.Eleccion)
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
                 if (padronElectoral == null)
                 {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
+                    return ApiResult<PadronElectoral>.Fail("Registro no encontrado");
                 }
 
                 return ApiResult<PadronElectoral>.Ok(padronElectoral);
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
             }
         }
 
-        // PUT: api/PadronElectorales/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<ApiResult<PadronElectoral>>> PostPadronElectoral(PadronElectoral padronElectoral)
+        {
+            try
+            {
+                bool existe = await _context.PadronElectorales
+                    .AnyAsync(p => p.VotanteId == padronElectoral.VotanteId &&
+                                   p.EleccionId == padronElectoral.EleccionId);
+
+                if (existe)
+                {
+                    return ApiResult<PadronElectoral>.Fail("Este votante ya está empadronado en esta elección.");
+                }
+
+                _context.PadronElectorales.Add(padronElectoral);
+                await _context.SaveChangesAsync();
+
+                return ApiResult<PadronElectoral>.Ok(padronElectoral);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<PadronElectoral>.Fail(ex.Message);
+            }
+        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResult<PadronElectoral>>> PutPadronElectoral(int id, PadronElectoral padronElectoral)
         {
             if (id != padronElectoral.Id)
             {
-                Log.Information("Los identificadores no coinciden");
-                return ApiResult<PadronElectoral>.Fail("Los identificadores no coinciden");
+                return ApiResult<PadronElectoral>.Fail("Los IDs no coinciden");
             }
 
             _context.Entry(padronElectoral).State = EntityState.Modified;
@@ -81,44 +97,25 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 await _context.SaveChangesAsync();
+                return ApiResult<PadronElectoral>.Ok(padronElectoral);
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 if (!PadronElectoralExists(id))
                 {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
+                    return ApiResult<PadronElectoral>.Fail("Registro no encontrado al intentar actualizar");
                 }
                 else
                 {
-                    Log.Information(ex.Message);
                     return ApiResult<PadronElectoral>.Fail(ex.Message);
                 }
             }
-            Log.Information($"{null}");
-            return ApiResult<PadronElectoral>.Ok(null);
-        }
-
-        // POST: api/PadronElectorales
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ApiResult<PadronElectoral>>> PostPadronElectoral(PadronElectoral padronElectoral)
-        {
-            try
-            {
-                _context.PadronElectorales.Add(padronElectoral);
-                await _context.SaveChangesAsync();
-                Log.Information($"{padronElectoral}");
-                return ApiResult<PadronElectoral>.Ok(padronElectoral);
-            }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
             }
         }
 
-        // DELETE: api/PadronElectorales/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResult<PadronElectoral>>> DeletePadronElectoral(int id)
         {
@@ -127,19 +124,62 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var padronElectoral = await _context.PadronElectorales.FindAsync(id);
                 if (padronElectoral == null)
                 {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<PadronElectoral>.Fail("Datos no encontrados");
+                    return ApiResult<PadronElectoral>.Fail("Registro no encontrado");
                 }
 
                 _context.PadronElectorales.Remove(padronElectoral);
                 await _context.SaveChangesAsync();
-                Log.Information($"{null}");
                 return ApiResult<PadronElectoral>.Ok(null);
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<PadronElectoral>.Fail(ex.Message);
+            }
+        }
+
+        [HttpPost("generar-codigo")]
+        public async Task<ActionResult<ApiResult<string>>> GenerarCodigo([FromBody] GenerarCodigoRequest request)
+        {
+            try
+            {
+                // 1. Validaciones básicas
+                if (request == null || string.IsNullOrEmpty(request.CedulaVotante) || request.EleccionId == 0 || request.MesaId == 0)
+                {
+                    return ApiResult<string>.Fail("Datos incompletos.");
+                }
+
+                // 2. Buscar registro
+                var registro = await _context.PadronElectorales
+                    .Include(p => p.Votante)
+                    .FirstOrDefaultAsync(p =>
+                        p.Votante != null &&
+                        p.Votante.Cedula == request.CedulaVotante &&
+                        p.EleccionId == request.EleccionId);
+
+                if (registro == null)
+                    return ApiResult<string>.Fail("Ciudadano no empadronado en esta elección.");
+
+                if (registro.MesaId != request.MesaId)
+                    return ApiResult<string>.Fail($"Este votante pertenece a otra mesa (Mesa ID: {registro.MesaId}).");
+
+                if (registro.CodigoCanjeado)
+                    return ApiResult<string>.Fail("El votante ya ha sufragado.");
+
+                // 3. Generar Código
+                string caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+                Random random = new Random();
+                string nuevoCodigo = new string(Enumerable.Repeat(caracteres, 6)
+                    .Select(s => s[random.Next(s.Length)]).ToArray());
+
+                registro.CodigoEnlace = nuevoCodigo;
+                registro.FechaGeneracionCodigo = DateTime.Now;
+                await _context.SaveChangesAsync();
+
+                return ApiResult<string>.Ok(nuevoCodigo);
+            }
+            catch (Exception ex)
+            {
+                return ApiResult<string>.Fail("Error interno: " + ex.Message);
             }
         }
 
@@ -147,61 +187,5 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             return _context.PadronElectorales.Any(e => e.Id == id);
         }
-
-        [HttpPost("generar-codigo")]
-        public async Task<ActionResult<ApiResult<object>>> GenerarCodigo([FromBody] GenerarCodigoRequest request)
-        {
-            try
-            {
-                var registroPadron = await _context.PadronElectorales
-                    .Include(p => p.Votante)
-                    .FirstOrDefaultAsync(p => p.Votante.Cedula == request.CedulaVotante
-                                           && p.EleccionId == request.EleccionId);
-
-                if (registroPadron == null)
-                    return ApiResult<object>.Fail("El votante no está empadronado en esta elección.");
-
-                if (registroPadron.MesaId != request.MesaId)
-                    return ApiResult<object>.Fail("Este votante pertenece a otra mesa.");
-
-                if (registroPadron.CodigoCanjeado)
-                    return ApiResult<object>.Fail("ALERTA: Este votante ya ejerció su voto.");
-
-                if (!string.IsNullOrEmpty(registroPadron.CodigoEnlace))
-                {
-                    return ApiResult<object>.Ok(new
-                    {
-                        Mensaje = "Código recuperado (ya existía)",
-                        Codigo = registroPadron.CodigoEnlace,
-                        Nombre = registroPadron.Votante.NombreCompleto
-                    });
-                }
-
-                string codigoNuevo = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
-
-                registroPadron.CodigoEnlace = codigoNuevo;
-                registroPadron.FechaGeneracionCodigo = DateTime.Now;
-
-                await _context.SaveChangesAsync();
-
-                return ApiResult<object>.Ok(new
-                {
-                    Mensaje = "Código generado exitosamente",
-                    Codigo = codigoNuevo,
-                    Nombre = registroPadron.Votante.NombreCompleto
-                });
-            }
-            catch (Exception ex)
-            {
-                return ApiResult<object>.Fail(ex.Message);
-            }
-        }
-    }
-
-    public class GenerarCodigoRequest
-    {
-        public string CedulaVotante { get; set; }
-        public int EleccionId { get; set; }
-        public int MesaId { get; set; }
     }
 }

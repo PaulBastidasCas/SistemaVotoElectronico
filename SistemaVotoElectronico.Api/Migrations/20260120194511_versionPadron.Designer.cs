@@ -5,14 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using SistemaVotoElectronico.Api.Data;
 
 #nullable disable
 
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-    [Migration("20260114173127_version2")]
-    partial class version2
+    [Migration("20260120194511_versionPadron")]
+    partial class versionPadron
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,10 +118,10 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("FechaFinalizacion")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("FechaInicio")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -214,7 +215,7 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("EleccionId")
+                    b.Property<int?>("EleccionId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("JefeDeMesaId")
@@ -256,10 +257,10 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("FechaGeneracionCodigo")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("FechaVoto")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("MesaId")
                         .HasColumnType("integer");
@@ -331,7 +332,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("FechaRegistro")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("IdCandidatoSeleccionado")
                         .HasColumnType("integer");
@@ -368,9 +369,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                 {
                     b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
                         .WithMany("Mesas")
-                        .HasForeignKey("EleccionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("EleccionId");
 
                     b.HasOne("SistemaVotoElectronico.Modelos.JefeDeMesa", "JefeDeMesa")
                         .WithOne("MesaAsignada")

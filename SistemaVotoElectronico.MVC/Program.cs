@@ -10,16 +10,6 @@ namespace SistemaVotoElectronico.MVC
         {
             string api = "http://localhost:5050/api";
 
-            Crud<Administrador>.UrlBase = $"{api}/Administradores";
-            Crud<Candidato>.UrlBase = $"{api}/Candidatos";
-            Crud<Eleccion>.UrlBase = $"{api}/Elecciones";
-            Crud<ListaElectoral>.UrlBase = $"{api}/ListaElectorales";
-            Crud<PadronElectoral>.UrlBase = $"{api}/PadronElectorales";
-            Crud<Votante>.UrlBase = $"{api}/Votantes";
-            Crud<Voto>.UrlBase = $"{api}/Votos";
-            Crud<JefeDeMesa>.UrlBase = $"{api}/JefesDeMesa";
-            Crud<Mesa>.UrlBase = $"{api}/Mesas";
-
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddControllersWithViews();

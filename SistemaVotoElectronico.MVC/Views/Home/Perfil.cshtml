@@ -84,22 +84,27 @@
 
             else if (Model.Rol == "Candidato")
             {
-                <div class="card shadow-sm mb-4">
+                <div class="card shadow-sm mb-4 border-warning">
                     <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">📢 Gestión de Candidatura</h5>
+                        <h5 class="mb-0">📢 Gestión de Mi Lista</h5>
                     </div>
-                    <div class="card-body">
-                        <p>Gestione aquí la información pública que verán los votantes.</p>
-                        <form method="post" action="#">
-                            <div class="form-group mb-3">
-                                <label class="form-label fw-bold">Biografía / Propuestas:</label>
-                                <textarea class="form-control" rows="4" placeholder="Escriba aquí sus propuestas principales..."></textarea>
+                    <div class="card-body text-center p-4">
+                        <p class="card-text mb-4">
+                            Como candidato, usted tiene permisos para editar la información de su Lista Electoral (Logotipo, Nombre, Siglas).
+                        </p>
+
+                        @if (Model.ListaId != 0)
+                        {
+                            <a href="@Url.Action("Edit", "ListaElectorales", new { id = Model.ListaId })" class="btn btn-primary btn-lg px-5 shadow">
+                                ✏️ Editar mi Lista Electoral
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning">
+                                ⚠️ Usted no está asociado a ninguna lista electoral actualmente.
                             </div>
-                            <button type="submit" class="btn btn-warning text-dark fw-bold" disabled title="Funcionalidad en desarrollo">
-                                💾 Guardar Cambios
-                            </button>
-                            <small class="text-muted d-block mt-2">* La edición de perfil está deshabilitada durante la auditoría.</small>
-                        </form>
+                        }
                     </div>
                 </div>
             }

@@ -1,8 +1,6 @@
+using SistemaVotoElectronico.Api.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace SistemaVotoElectronico.Api
 {
@@ -28,8 +26,7 @@ namespace SistemaVotoElectronico.Api
 
             builder.Services.AddDbContext<SistemaVotoElectronicoApiContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("SistemaVotacionAPIContext.postgresql")
-            ?? throw new InvalidOperationException("Connection string not found."))
-            );
+            ?? throw new InvalidOperationException("Connection string not found.")));
 
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

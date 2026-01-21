@@ -35,11 +35,14 @@
 
                         @if (!esPaginaAuth)
                         {
-                            <li class="nav-item ms-2">
-                                <a class="btn btn-success text-white fw-bold shadow-sm" asp-controller="Sufragio" asp-action="Index">
-                                    🗳️ IR A CABINA DE VOTACIÓN
-                                </a>
-                            </li>
+                            @if (!User.Identity!.IsAuthenticated || User.IsInRole("Votante"))
+                            {
+                                <li class="nav-item ms-2">
+                                    <a class="btn btn-success text-white fw-bold shadow-sm" asp-controller="Sufragio" asp-action="Index">
+                                        🗳️ IR A CABINA DE VOTACIÓN
+                                    </a>
+                                </li>
+                            }
                         }
 
                         @if (User.IsInRole("Administrador"))
