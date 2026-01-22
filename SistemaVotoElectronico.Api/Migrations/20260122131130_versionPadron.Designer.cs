@@ -12,7 +12,7 @@ using SistemaVotoElectronico.Api.Data;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-    [Migration("20260120194511_versionPadron")]
+    [Migration("20260122131130_versionPadron")]
     partial class versionPadron
     {
         /// <inheritdoc />

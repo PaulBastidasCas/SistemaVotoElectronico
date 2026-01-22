@@ -8,7 +8,7 @@ namespace SistemaVotoElectronico.MVC
     {
         public static void Main(string[] args)
         {
-            string api = "http://localhost:5050/api";
+            string api = "http://localhost:5051/api";
 
             var builder = WebApplication.CreateBuilder(args);
 

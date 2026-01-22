@@ -12,7 +12,7 @@ namespace SistemaVotoElectronico.Modelos
         public bool Activa { get; set; }
 
         //Relaciones
-        public List<ListaElectoral>? Listas { get; set; }
-        public List<Mesa>? Mesas { get; set; }
+        public List<ListaElectoral>? Listas { get; set; }= new List<ListaElectoral>();
+        public List<Mesa>? Mesas { get; set; }= new List<Mesa>();
     }
 }
