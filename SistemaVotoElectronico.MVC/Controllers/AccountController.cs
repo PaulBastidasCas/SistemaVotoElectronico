@@ -11,7 +11,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly string _apiBaseUrl = "http://localhost:5050/api";
+        private readonly string _apiBaseUrl = "http://localhost:5051/api";
         private readonly HttpClient _httpClient;
 
         public AccountController()

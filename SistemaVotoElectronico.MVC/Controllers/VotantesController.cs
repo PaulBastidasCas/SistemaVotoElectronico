@@ -6,7 +6,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class VotantesController : Controller
     {
-        private readonly string _endpoint = "http://localhost:5050/api/Votantes";
+        private readonly string _endpoint = "http://localhost:5051/api/Votantes";
 
         public async Task<IActionResult> Index()
         {

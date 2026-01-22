@@ -6,7 +6,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class PadronElectoralesController : Controller
     {
-        private readonly string _baseApiUrl = "http://localhost:5050/api";
+        private readonly string _baseApiUrl = "http://localhost:5051/api";
 
         [HttpGet]
         public IActionResult Autorizar()

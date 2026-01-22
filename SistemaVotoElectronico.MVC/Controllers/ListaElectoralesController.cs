@@ -6,7 +6,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class ListaElectoralesController : Controller
     {
-        private readonly string _endpoint = "http://localhost:5050/api/ListaElectorales";
+        private readonly string _endpoint = "http://localhost:5051/api/ListaElectorales";
 
         public async Task<IActionResult> Index()
         {
