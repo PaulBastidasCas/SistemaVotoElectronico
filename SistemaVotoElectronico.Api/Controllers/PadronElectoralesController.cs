@@ -142,13 +142,11 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                // 1. Validaciones básicas
                 if (request == null || string.IsNullOrEmpty(request.CedulaVotante) || request.EleccionId == 0 || request.MesaId == 0)
                 {
                     return ApiResult<string>.Fail("Datos incompletos.");
                 }
 
-                // 2. Buscar registro
                 var registro = await _context.PadronElectorales
                     .Include(p => p.Votante)
                     .FirstOrDefaultAsync(p =>
@@ -165,7 +163,6 @@ namespace SistemaVotoElectronico.Api.Controllers
                 if (registro.CodigoCanjeado)
                     return ApiResult<string>.Fail("El votante ya ha sufragado.");
 
-                // 3. Generar Código
                 string caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
                 Random random = new Random();
                 string nuevoCodigo = new string(Enumerable.Repeat(caracteres, 6)

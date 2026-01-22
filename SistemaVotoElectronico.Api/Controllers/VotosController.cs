@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
-using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -24,6 +21,8 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var registroPadron = await _context.PadronElectorales
+                    .Include(p => p.Votante)
+                    .Include(p => p.Eleccion)
                     .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace
                                            && p.EleccionId == request.EleccionId);
 
@@ -41,7 +40,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 var nuevoVoto = new Voto
                 {
-                    Id = Guid.NewGuid(), 
+                    Id = Guid.NewGuid(),
                     EleccionId = request.EleccionId,
                     IdListaSeleccionada = request.IdListaSeleccionada,
                     IdCandidatoSeleccionado = request.IdCandidatoSeleccionado,
@@ -60,6 +59,24 @@ namespace SistemaVotoElectronico.Api.Controllers
                 await transaction.CommitAsync();
 
                 Log.Information($"Voto registrado con éxito. Código quemado: {request.CodigoEnlace}");
+
+                try
+                {
+                    if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
+                    {
+                        EnviarCertificadoPDF(
+                            registroPadron.Votante.NombreCompleto ?? "Ciudadano",
+                            registroPadron.Votante.Correo,
+                            registroPadron.Eleccion?.Nombre ?? "Elección General",
+                            DateTime.Now
+                        );
+                    }
+                }
+                catch (Exception exEmail)
+                {
+                    Log.Error($"Voto guardado, pero error al enviar email: {exEmail.Message}");
+                }
+
                 return ApiResult<string>.Ok("Su voto ha sido registrado correctamente.");
             }
             catch (Exception ex)
@@ -70,6 +87,82 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
         }
 
+        private void EnviarCertificadoPDF(string nombreVotante, string correoDestino, string nombreEleccion, DateTime fecha)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(stream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                PdfFont fuenteNegrita = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont fuenteNormal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN DIGITAL")
+                    .SetFont(fuenteNegrita) 
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(20));
+
+                document.Add(new Paragraph("\n\n"));
+
+                document.Add(new Paragraph("El Sistema de Voto Electrónico certifica que el ciudadano/a:")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph()
+                    .Add(new Text(nombreVotante.ToUpper())
+                        .SetFont(fuenteNegrita) 
+                        .SetFontColor(ColorConstants.BLUE))
+                    .SetFontSize(16)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph("\nHa ejercido exitosamente su derecho al voto en:")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph(nombreEleccion)
+                    .SetFont(fuenteNegrita) 
+                    .SetFontSize(14)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph($"\nFecha y Hora de registro: {fecha:dd/MM/yyyy HH:mm:ss}")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph($"Identificador de Transacción: {Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}")
+                    .SetFont(fuenteNormal)
+                    .SetFontSize(10));
+
+                document.Add(new Paragraph("\n\nGracias por fortalecer la democracia.")
+                    .SetFont(fuenteNormal) 
+                    .SetTextAlignment(TextAlignment.CENTER)); 
+
+                document.Close();
+
+                byte[] bytesPdf = stream.ToArray();
+
+                string miCorreo = "bastidaspaul83@gmail.com";
+                string miPassword = "njkb gyyh qygc wviw";
+
+                var smtpClient = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential(miCorreo, miPassword),
+                    EnableSsl = true,
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(miCorreo, "Sistema Voto Electrónico"),
+                    Subject = "Constancia de Votación",
+                    Body = $"Estimado/a {nombreVotante},<br/><br/>Su voto ha sido procesado correctamente.<br/>Adjunto encontrará su certificado digital de votación.<br/><br/>Atentamente,<br/>Consejo Electoral.",
+                    IsBodyHtml = true,
+                };
+
+                mailMessage.To.Add(correoDestino);
+                mailMessage.Attachments.Add(new Attachment(new MemoryStream(bytesPdf), "Certificado_Votacion.pdf"));
+
+                smtpClient.Send(mailMessage);
+            }
+        }
+
         // GET: api/Votos
         [HttpGet]
         public async Task<ActionResult<ApiResult<List<Voto>>>> GetVotos()
@@ -77,12 +170,10 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.Votos.ToListAsync();
-                Log.Information($"{data}");
                 return ApiResult<List<Voto>>.Ok(data);
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<List<Voto>>.Fail(ex.Message);
             }
         }
@@ -93,36 +184,41 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var voto = await _context
-                    .Votos
+                var voto = await _context.Votos
                     .Include(e => e.Eleccion)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
-                if (voto == null)
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Voto>.Fail("Datos no encontrados");
-                }
-                Log.Information($"{voto}");
+                if (voto == null) return ApiResult<Voto>.Fail("Datos no encontrados");
+
                 return ApiResult<Voto>.Ok(voto);
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
+                return ApiResult<Voto>.Fail(ex.Message);
+            }
+        }
+
+        // POST: api/Votos 
+        [HttpPost]
+        public async Task<ActionResult<ApiResult<Voto>>> PostVoto(Voto voto)
+        {
+            try
+            {
+                _context.Votos.Add(voto);
+                await _context.SaveChangesAsync();
+                return ApiResult<Voto>.Ok(voto);
+            }
+            catch (Exception ex)
+            {
                 return ApiResult<Voto>.Fail(ex.Message);
             }
         }
 
         // PUT: api/Votos/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResult<Voto>>> PutVoto(Guid id, Voto voto)
         {
-            if (id != voto.Id)
-            {
-                Log.Information("No coinciden los identificadores");
-                return ApiResult<Voto>.Fail("No coinciden los identificadores");
-            }
+            if (id != voto.Id) return ApiResult<Voto>.Fail("No coinciden los identificadores");
 
             _context.Entry(voto).State = EntityState.Modified;
 
@@ -132,39 +228,11 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                if (!VotoExists(id))
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Voto>.Fail("Datos no encontrados");
-                }
-                else
-                {
-                    Log.Information(ex.Message);
-                    return ApiResult<Voto>.Fail(ex.Message);
-                }
+                if (!VotoExists(id)) return ApiResult<Voto>.Fail("Datos no encontrados");
+                else return ApiResult<Voto>.Fail(ex.Message);
             }
-            Log.Information($"{null}");
+
             return ApiResult<Voto>.Ok(null);
-        }
-
-        // POST: api/Votos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ApiResult<Voto>>> PostVoto(Voto voto)
-        {
-            try
-            {
-                _context.Votos.Add(voto);
-                await _context.SaveChangesAsync();
-                Log.Information($"{voto}");
-                return ApiResult<Voto>.Ok(voto);
-
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex.Message);
-                return ApiResult<Voto>.Fail(ex.Message);
-            }
         }
 
         // DELETE: api/Votos/5
@@ -174,21 +242,14 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var voto = await _context.Votos.FindAsync(id);
-                if (voto == null)
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Voto>.Fail("Datos no encontrados");
-                }
+                if (voto == null) return ApiResult<Voto>.Fail("Datos no encontrados");
 
                 _context.Votos.Remove(voto);
                 await _context.SaveChangesAsync();
-                Log.Information($"{null}");
                 return ApiResult<Voto>.Ok(null);
-
             }
             catch (Exception ex)
             {
-                Log.Information(ex.Message);
                 return ApiResult<Voto>.Fail(ex.Message);
             }
         }

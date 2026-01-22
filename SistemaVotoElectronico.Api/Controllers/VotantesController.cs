@@ -67,9 +67,9 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             if (id != votante.Id)
             {
-                Log.Information("Los identificadores no coinciden");
                 return ApiResult<Votante>.Fail("Los identificadores no coinciden");
             }
+
             try
             {
                 var votanteAnterior = await _context.Votantes
@@ -86,26 +86,14 @@ namespace SistemaVotoElectronico.Api.Controllers
                 {
                     votante.Contrasena = BCrypt.Net.BCrypt.HashPassword(votante.Contrasena);
                 }
-
                 _context.Entry(votante).State = EntityState.Modified;
-
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
 
                 return ApiResult<Votante>.Ok(null);
-
             }
-            catch (DbUpdateConcurrencyException ex)
+            catch (Exception ex)
             {
-                if (!VotanteExists(id))
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Votante>.Fail("Datos no encontrados");
-                }
-                else
-                {
-                    Log.Information(ex.Message);
-                    return ApiResult<Votante>.Fail(ex.Message);
-                }
+                return ApiResult<Votante>.Fail(ex.Message);
             }
         }
 

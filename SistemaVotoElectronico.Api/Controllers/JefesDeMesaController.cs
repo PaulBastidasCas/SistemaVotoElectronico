@@ -1,8 +1,13 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SistemaVotoElectronico.Api.Data;
 using SistemaVotoElectronico.Modelos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -25,15 +30,15 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 var data = await _context
                     .JefesDeMesa
-                    .Include(e => e.MesaAsignada) 
+                    .Include(e => e.MesaAsignada)
                     .ToListAsync();
                 Log.Information($"{data}");
-                return ApiResult<List<JefeDeMesa>>.Ok( data );
+                return ApiResult<List<JefeDeMesa>>.Ok(data);
             }
             catch (Exception ex)
             {
                 Log.Information(ex.Message);
-                return ApiResult<List<JefeDeMesa>>.Fail(ex.Message );
+                return ApiResult<List<JefeDeMesa>>.Fail(ex.Message);
             }
         }
 
@@ -45,7 +50,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 var jefeDeMesa = await _context
                     .JefesDeMesa
-                    .Include(e  => e.MesaAsignada)
+                    .Include(e => e.MesaAsignada)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (jefeDeMesa == null)
@@ -64,53 +69,35 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
         }
 
+
         // PUT: api/JefesDeMesa/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResult<JefeDeMesa>>> PutJefeDeMesa(int id, JefeDeMesa jefeDeMesa)
+        public async Task<ActionResult<ApiResult<JefeDeMesa>>> PutJefeDeMesa(int id, JefeDeMesa jefe)
         {
-            if (id != jefeDeMesa.Id)
-            {
-                Log.Information("Identificadores no coinciden");
-                return ApiResult<JefeDeMesa>.Fail("Los identificadores no coinciden");
-            }
+            if (id != jefe.Id) return ApiResult<JefeDeMesa>.Fail("ID no coincide");
 
             try
             {
-                var jefeAnterior = await _context.JefesDeMesa
-                                          .AsNoTracking()
-                                          .FirstOrDefaultAsync(x => x.Id == id);
+                var original = await _context.JefesDeMesa.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+                if (original == null) return ApiResult<JefeDeMesa>.Fail("No encontrado");
 
-                if (jefeAnterior == null) return ApiResult<JefeDeMesa>.Fail("No existe");
-
-                if (string.IsNullOrEmpty(jefeDeMesa.Contrasena))
+                if (string.IsNullOrEmpty(jefe.Contrasena))
                 {
-                    jefeDeMesa.Contrasena = jefeAnterior.Contrasena;
+                    jefe.Contrasena = original.Contrasena;
                 }
                 else
                 {
-                    jefeDeMesa.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefeDeMesa.Contrasena);
+                    jefe.Contrasena = BCrypt.Net.BCrypt.HashPassword(jefe.Contrasena);
                 }
 
-                _context.Entry(jefeDeMesa).State = EntityState.Modified;
+                _context.Entry(jefe).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-
                 return ApiResult<JefeDeMesa>.Ok(null);
             }
-            catch (DbUpdateConcurrencyException ex) 
-            {
-                if (!JefeDeMesaExists(id))
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<JefeDeMesa>.Fail("Datos no encontrados");
-                }
-                else
-                {
-                    Log.Information(ex.Message);
-                    return ApiResult<JefeDeMesa>.Fail(ex.Message);
-                }
-            }
+            catch (Exception ex) { return ApiResult<JefeDeMesa>.Fail(ex.Message); }
         }
+
 
         // POST: api/JefesDeMesa
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -136,6 +123,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 return ApiResult<JefeDeMesa>.Fail(ex.Message);
             }
         }
+
 
         // DELETE: api/JefesDeMesa/5
         [HttpDelete("{id}")]

@@ -1,5 +1,16 @@
-using SistemaVotoElectronico.Api.Data;
-using Microsoft.EntityFrameworkCore;
+global using iText.Kernel.Pdf;
+global using iText.Layout;
+global using iText.Layout.Element;
+global using iText.Layout.Properties;
+global using iText.IO.Font.Constants;
+global using iText.Kernel.Font;
+global using iText.Kernel.Colors;
+global using System.Net;
+global using System.Net.Mail;
+global using System.IO;
+global using SistemaVotoElectronico.Api.Data;
+global using SistemaVotoElectronico.Modelos;
+global using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace SistemaVotoElectronico.Api

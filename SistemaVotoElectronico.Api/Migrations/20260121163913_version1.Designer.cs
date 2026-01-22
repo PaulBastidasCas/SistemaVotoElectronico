@@ -12,8 +12,8 @@ using SistemaVotoElectronico.Api.Data;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-    [Migration("20260120194511_versionPadron")]
-    partial class versionPadron
+    [Migration("20260121163913_version1")]
+    partial class version1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,6 +154,9 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.Property<string>("Correo")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Fotografia")
                         .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")

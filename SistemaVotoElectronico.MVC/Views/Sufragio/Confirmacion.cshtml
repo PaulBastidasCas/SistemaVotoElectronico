@@ -12,11 +12,23 @@
             <p class="lead mt-3">Gracias por ejercer su derecho al voto.</p>
             <p class="text-muted">Su código de enlace ha sido invalidado por seguridad.</p>
 
+            <div class="alert alert-info mt-3">
+                <strong>📧 El certificado de votación se envió al correo registrado.</strong>
+            </div>
+
             <hr />
 
-            <a asp-controller="Sufragio" asp-action="Index" class="btn btn-primary mt-3">
-                Volver al Inicio (Siguiente Votante)
+            <p class="small text-muted mt-3">Cerrando sesión de forma segura...</p>
+
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-primary mt-3">
+                Salir Ahora
             </a>
         </div>
     </div>
 </div>
+
+<script>
+    setTimeout(function() {
+        window.location.href = '@Url.Action("Logout", "Account")';
+    }, 5000);
+</script>

@@ -5,21 +5,37 @@
 }
 
 <div class="container py-4">
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert alert-@TempData["Tipo"] alert-dismissible fade show" role="alert">
+            @TempData["Mensaje"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
     <div class="row">
         <div class="col-md-4 mb-4">
             <div class="card shadow-sm text-center h-100">
                 <div class="card-body">
-                    <div class="mb-3 d-flex justify-content-center">
+
+                    <div class="mb-3 d-flex flex-column align-items-center justify-content-center">
                         @if (!string.IsNullOrEmpty(Model.Foto))
                         {
-                            <img src="@Model.Foto" class="rounded-circle border" alt="Foto de perfil" style="width: 150px; height: 150px; object-fit: cover;" />
+                            <img src="@Model.Foto" class="rounded-circle border shadow-sm mb-2" alt="Foto de perfil" style="width: 150px; height: 150px; object-fit: cover;" />
                         }
                         else
                         {
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 150px; height: 150px; font-size: 3rem;">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm mb-2" style="width: 150px; height: 150px; font-size: 3rem;">
                                 👤
                             </div>
                         }
+
+                        <form asp-controller="Home" asp-action="UpdateProfilePhoto" enctype="multipart/form-data" method="post" class="mt-2">
+                            <label for="fileUpload" class="btn btn-sm btn-outline-primary pointer" style="cursor: pointer;">
+                                📷 Cambiar Foto
+                            </label>
+                            <input type="file" id="fileUpload" name="fotoUpload" accept="image/*" style="display:none;" onchange="this.form.submit()" />
+                        </form>
+                        <small class="text-muted" style="font-size: 0.75rem;">(Click para seleccionar)</small>
                     </div>
 
                     <h3 class="card-title">@Model.Nombre</h3>
@@ -48,95 +64,52 @@
         </div>
 
         <div class="col-md-8">
-
             @if (Model.Rol == "Administrador")
             {
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">🛠 Acciones Rápidas de Administrador</h5>
-                    </div>
+                    <div class="card-header bg-dark text-white"><h5 class="mb-0">🛠 Panel de Administrador</h5></div>
                     <div class="card-body">
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <a href="@Url.Action("Index", "Elecciones")" class="btn btn-outline-primary w-100 py-3">
-                                    📅 Gestionar Elecciones
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="@Url.Action("Index", "Mesas")" class="btn btn-outline-primary w-100 py-3">
-                                    🗳️ Gestionar Mesas
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="@Url.Action("Index", "PadronElectorales")" class="btn btn-outline-secondary w-100 py-3">
-                                    📋 Ver Padrón Electoral
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="@Url.Action("Index", "Votos")" class="btn btn-outline-secondary w-100 py-3">
-                                    📊 Auditoría de Votos
-                                </a>
-                            </div>
+                            <div class="col-md-6"><a href="@Url.Action("Index", "Elecciones")" class="btn btn-outline-primary w-100 py-3">📅 Elecciones</a></div>
+                            <div class="col-md-6"><a href="@Url.Action("Index", "Mesas")" class="btn btn-outline-primary w-100 py-3">🗳️ Mesas</a></div>
+                            <div class="col-md-6"><a href="@Url.Action("Index", "PadronElectorales")" class="btn btn-outline-secondary w-100 py-3">📋 Padrón</a></div>
+                            <div class="col-md-6"><a href="@Url.Action("Index", "Votos")" class="btn btn-outline-secondary w-100 py-3">📊 Auditoría</a></div>
                         </div>
                     </div>
                 </div>
             }
-
             else if (Model.Rol == "Candidato")
             {
                 <div class="card shadow-sm mb-4 border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">📢 Gestión de Mi Lista</h5>
-                    </div>
+                    <div class="card-header bg-warning text-dark"><h5 class="mb-0">📢 Gestión de Mi Lista</h5></div>
                     <div class="card-body text-center p-4">
-                        <p class="card-text mb-4">
-                            Como candidato, usted tiene permisos para editar la información de su Lista Electoral (Logotipo, Nombre, Siglas).
-                        </p>
-
+                        <p class="card-text mb-4">Puede editar la información de su Lista Electoral.</p>
                         @if (Model.ListaId != 0)
                         {
-                            <a href="@Url.Action("Edit", "ListaElectorales", new { id = Model.ListaId })" class="btn btn-primary btn-lg px-5 shadow">
-                                ✏️ Editar mi Lista Electoral
-                            </a>
+                            <a href="@Url.Action("Edit", "ListaElectorales", new { id = Model.ListaId })" class="btn btn-primary btn-lg px-5 shadow">✏️ Editar mi Lista</a>
                         }
                         else
                         {
-                            <div class="alert alert-warning">
-                                ⚠️ Usted no está asociado a ninguna lista electoral actualmente.
-                            </div>
+
+                            <div class="alert alert-warning">⚠️ No está asociado a ninguna lista.</div>
                         }
                     </div>
                 </div>
             }
-
             else if (Model.Rol == "JefeDeMesa")
             {
                 <div class="card shadow-sm mb-4 border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">👮 Panel de Control de Mesa</h5>
-                    </div>
+                    <div class="card-header bg-primary text-white"><h5 class="mb-0">👮 Panel de Mesa</h5></div>
                     <div class="card-body text-center p-5">
-                        <h4 class="card-title">Autorización de Votantes</h4>
-                        <p class="card-text">
-                            Utilice esta herramienta para buscar ciudadanos en el padrón, validar su identidad y generar códigos de enlace únicos.
-                        </p>
-                        <a href="@Url.Action("Autorizar", "PadronElectorales")" class="btn btn-primary btn-lg px-5 shadow">
-                            🔍 Buscar Votante y Generar Código
-                        </a>
+                        <h4 class="card-title">Autorización</h4>
+                        <a href="@Url.Action("Autorizar", "PadronElectorales")" class="btn btn-primary btn-lg px-5 shadow">🔍 Buscar Votante y Generar Código</a>
                     </div>
-                </div>
-
-                <div class="alert alert-info">
-                    <strong>Nota:</strong> Recuerde verificar la cédula física del votante antes de generar el código.
                 </div>
             }
-
             else if (Model.Rol == "Votante")
             {
                 <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">📜 Historial de Participación</h5>
-                    </div>
+                    <div class="card-header bg-success text-white"><h5 class="mb-0">📜 Historial</h5></div>
                     <div class="card-body">
                         @if (Model.Items != null && Model.Items.Count > 0)
                         {
@@ -144,21 +117,24 @@
                                 @foreach (var item in Model.Items)
                                 {
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>@item.Titulo</strong>
-                                            <br />
-                                            <small class="text-muted">Estado: Registrado</small>
-                                        </div>
-                                        <span class="badge bg-success rounded-pill">Voto Emitido</span>
+                                        <div><strong>@item.Titulo</strong><br /><small class="text-muted">@(item.HaVotado ? "Completado" : "En espera")</small></div>
+                                        @if (item.HaVotado)
+                                        {
+                                            <span class="badge bg-success rounded-pill">Voto Emitido</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span class="badge bg-warning text-dark rounded-pill">Pendiente</span>
+                                        }
                                     </li>
                                 }
                             </ul>
                         }
                         else
                         {
-                            <div class="text-center py-4 text-muted">
-                                <p class="mb-0">Todavía no ha participado en ninguna elección registrada.</p>
-                            </div>
+
+                            <div class="text-center py-4 text-muted"><p class="mb-0">Sin historial.</p></div>
                         }
                     </div>
                 </div>

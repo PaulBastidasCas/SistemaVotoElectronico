@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class versionPadron : Migration
+    public partial class version1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,6 +57,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     NombreCompleto = table.Column<string>(type: "text", nullable: false),
                     Correo = table.Column<string>(type: "text", nullable: false),
                     Contrasena = table.Column<string>(type: "text", nullable: false),
+                    Fotografia = table.Column<string>(type: "text", nullable: true),
                     Rol = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>

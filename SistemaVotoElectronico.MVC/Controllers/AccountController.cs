@@ -121,6 +121,53 @@ namespace SistemaVotoElectronico.MVC.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
+
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(RecuperarDto modelo)
+        {
+            if (!ModelState.IsValid) return View(modelo);
+
+            var resultado = await Crud<bool>.PostAndGetResultAsync<RecuperarDto, bool>($"{_apiBaseUrl}/Auth/Recuperar", modelo);
+
+            if (resultado.Success)
+            {
+                TempData["Mensaje"] = "Si el correo existe, se ha enviado un código.";
+                return RedirectToAction("ResetPassword");
+            }
+
+            ViewData["Error"] = resultado.Message;
+            return View(modelo);
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto modelo)
+        {
+            if (!ModelState.IsValid) return View(modelo);
+
+            var resultado = await Crud<bool>.PostAndGetResultAsync<ResetPasswordDto, bool>($"{_apiBaseUrl}/Auth/Reset", modelo);
+
+            if (resultado.Success)
+            {
+                TempData["SuccessMessage"] = "Contraseña actualizada. Inicia sesión.";
+                return RedirectToAction("Login");
+            }
+
+            ViewData["Error"] = resultado.Message;
+            return View(modelo);
+        }
     }
 
     public class LoginResponseDto

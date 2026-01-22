@@ -10,8 +10,9 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="Nombre" class="control-label"></label>
                 <input asp-for="Nombre" class="form-control" />
@@ -27,11 +28,12 @@
                 <input asp-for="Siglas" class="form-control" />
                 <span asp-validation-for="Siglas" class="text-danger"></span>
             </div>
+            
             <div class="form-group">
-                <label asp-for="Logotipo" class="control-label"></label>
-                <input asp-for="Logotipo" class="form-control" />
-                <span asp-validation-for="Logotipo" class="text-danger"></span>
+                <label class="control-label">Logotipo</label>
+                <input type="file" name="fotoUpload" class="form-control" accept="image/*" />
             </div>
+
             <div class="form-group">
                 <label asp-for="Color" class="control-label"></label>
                 <input asp-for="Color" class="form-control" />

@@ -31,18 +31,53 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // POST: AdministradoresController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Administrador model)
+        public async Task<IActionResult> Create(Administrador model, IFormFile? fotoUpload)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var res = await Crud<Administrador>.CreateAsync(_endpoint, model);
-
-            if (res.Success)
+            if (fotoUpload != null && fotoUpload.Length > 0)
             {
-                return RedirectToAction(nameof(Index));
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Fotografia = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Fotografia = "";
             }
 
-            ModelState.AddModelError("", res.Message);
+            if (string.IsNullOrEmpty(model.Contrasena))
+            {
+                ModelState.AddModelError("Contrasena", "La contraseña es obligatoria al crear un usuario.");
+            }
+
+            ModelState.Remove("Fotografia");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model.Id = 0;
+
+                    var resultado = await Crud<Administrador>.CreateAsync(_endpoint, model);
+
+                    if (resultado.Success)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", $"Error API: {resultado.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error de conexión: {ex.Message}");
+                }
+            }
             return View(model);
         }
 
@@ -56,8 +91,35 @@ namespace SistemaVotoElectronico.MVC.Controllers
         // POST: AdministradoresController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Administrador model)
+        public async Task<IActionResult> Edit(int id, Administrador model, IFormFile? fotoUpload)
         {
+            var dbResult = await Crud<Administrador>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var original = dbResult.Data;
+
+            if (fotoUpload != null && fotoUpload.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Fotografia = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Fotografia = original?.Fotografia;
+            }
+
+            if (original != null && model.Contrasena == original.Contrasena)
+            {
+                model.Contrasena = "";
+            }
+
+            ModelState.Remove("Contrasena");
+            ModelState.Remove("Fotografia");
+
             if (!ModelState.IsValid) return View(model);
 
             var res = await Crud<Administrador>.UpdateAsync(_endpoint, id.ToString(), model);

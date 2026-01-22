@@ -64,22 +64,16 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResult<Administrador>>> PutAdministrador(int id, Administrador administrador)
         {
-            if (id != administrador.Id)
-            {
-                Log.Information("No coinciden los identificadores");
-                return ApiResult<Administrador>.Fail("No coinciden los identificadores");
-            }
+            if (id != administrador.Id) return ApiResult<Administrador>.Fail("ID no coincide");
 
             try
             {
-                var adminAnterior = await _context.Administradores
-                                          .AsNoTracking()
-                                          .FirstOrDefaultAsync(x => x.Id == id);
-                if (adminAnterior == null) return ApiResult<Administrador>.Fail("No existe");
+                var original = await _context.Administradores.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+                if (original == null) return ApiResult<Administrador>.Fail("No encontrado");
 
                 if (string.IsNullOrEmpty(administrador.Contrasena))
                 {
-                    administrador.Contrasena = adminAnterior.Contrasena;
+                    administrador.Contrasena = original.Contrasena;
                 }
                 else
                 {
@@ -88,22 +82,9 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 _context.Entry(administrador).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-
                 return ApiResult<Administrador>.Ok(null);
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (!AdministradorExists(id))
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Administrador>.Fail("Datos no encontrados");
-                }
-                else
-                {
-                    Log.Information(ex.Message);
-                    return ApiResult<Administrador>.Fail(ex.Message);
-                }
-            }
+            catch (Exception ex) { return ApiResult<Administrador>.Fail(ex.Message); }
         }
 
         // POST: api/Administradores

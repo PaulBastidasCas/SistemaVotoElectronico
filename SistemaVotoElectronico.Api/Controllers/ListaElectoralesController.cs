@@ -23,7 +23,10 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var data = await _context.ListaElectorales.ToListAsync();
+                var data = await _context.ListaElectorales
+                    .Include(l => l.Candidatos) 
+                    .Include(l => l.Eleccion)  
+                    .ToListAsync();
                 Log.Information($"{data}");
                 return ApiResult<List<ListaElectoral>>.Ok(data);
             }

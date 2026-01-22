@@ -24,7 +24,6 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 return View("Autorizar");
             }
 
-            // 1. OBTENER ELECCIONES 
             var resultadoElecciones = await Crud<Eleccion>.ReadAllAsync($"{_baseApiUrl}/Elecciones");
             var eleccionActiva = resultadoElecciones.Data?.FirstOrDefault(e => e.Activa);
 
@@ -34,7 +33,6 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 return View("Autorizar");
             }
 
-            // 2. OBTENER JEFE DE MESA ACTUAL
             var correoJefe = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
             var resultadoJefes = await Crud<JefeDeMesa>.ReadAllAsync($"{_baseApiUrl}/JefesDeMesa");
 
@@ -47,7 +45,6 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 return View("Autorizar");
             }
 
-            // 3. PREPARAR EL REQUEST (DTO)
             var request = new GenerarCodigoRequest
             {
                 CedulaVotante = cedula.Trim(),
@@ -55,7 +52,6 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 MesaId = jefeActual.MesaAsignada.Id
             };
 
-            // 4. LLAMAR A LA API 
             var resultadoCodigo = await Crud<object>.PostAndGetResultAsync<GenerarCodigoRequest, string>(
                 $"{_baseApiUrl}/PadronElectorales/generar-codigo",
                 request

@@ -23,5 +23,6 @@ namespace SistemaVotoElectronico.Api.Data
         public DbSet<Voto> Votos { get; set; } = default!;
         public DbSet<JefeDeMesa> JefesDeMesa { get; set; } = default!;
         public DbSet<Mesa> Mesas { get; set; } = default!;
+        public DbSet<SolicitudRecuperacion> SolicitudesRecuperacion { get; set; } = default!;
     }
 }

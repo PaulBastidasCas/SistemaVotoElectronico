@@ -65,23 +65,16 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ApiResult<Candidato>>> PutCandidato(int id, Candidato candidato)
         {
-            if (id != candidato.Id)
-            {
-                Log.Information("No coinciden los identificadores");
-                return ApiResult<Candidato>.Fail("No coinciden los identificadores");
-            }
+            if (id != candidato.Id) return ApiResult<Candidato>.Fail("ID no coincide");
 
             try
             {
-                var candidatoAnterior = await _context.Candidatos
-                                              .AsNoTracking()
-                                              .FirstOrDefaultAsync(x => x.Id == id);
-                
-                if (candidatoAnterior == null) return ApiResult<Candidato>.Fail("No existe");
+                var original = await _context.Candidatos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+                if (original == null) return ApiResult<Candidato>.Fail("No encontrado");
 
                 if (string.IsNullOrEmpty(candidato.Contrasena))
                 {
-                    candidato.Contrasena = candidatoAnterior.Contrasena;
+                    candidato.Contrasena = original.Contrasena;
                 }
                 else
                 {
@@ -90,22 +83,9 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 _context.Entry(candidato).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-
                 return ApiResult<Candidato>.Ok(null);
             }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (!CandidatoExists(id))
-                {
-                    Log.Information("Datos no encontrados");
-                    return ApiResult<Candidato>.Fail("Datos no encontrados");
-                }
-                else
-                {
-                    Log.Information(ex.Message);
-                    return ApiResult<Candidato>.Fail(ex.Message);
-                }
-            }
+            catch (Exception ex) { return ApiResult<Candidato>.Fail(ex.Message); }
         }
 
         // POST: api/Candidatos

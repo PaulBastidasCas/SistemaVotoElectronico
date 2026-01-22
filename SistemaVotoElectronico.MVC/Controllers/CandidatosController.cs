@@ -27,16 +27,39 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Candidato candidato)
+        public async Task<IActionResult> Create(Candidato model, IFormFile? fotoUpload)
         {
+            if (fotoUpload != null && fotoUpload.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Fotografia = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Fotografia = "";
+            }
+
+            if (string.IsNullOrEmpty(model.Contrasena))
+            {
+                ModelState.AddModelError("Contrasena", "La contraseña es obligatoria al crear un usuario.");
+            }
+
+            ModelState.Remove("Fotografia");
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    candidato.Id = 0;
-                    candidato.ListaElectoral = null;
+                    model.Id = 0;
+                    model.ListaElectoral = null;
 
-                    var resultado = await Crud<Candidato>.CreateAsync(_endpoint, candidato);
+                    var resultado = await Crud<Candidato>.CreateAsync(_endpoint, model);
 
                     if (resultado.Success)
                     {
@@ -52,7 +75,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     ModelState.AddModelError("", $"Error de conexión: {ex.Message}");
                 }
             }
-            return View(candidato);
+            return View(model);
         }
 
         public async Task<IActionResult> Edit(int id)
@@ -63,8 +86,35 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Candidato model)
+        public async Task<IActionResult> Edit(int id, Candidato model, IFormFile? fotoUpload)
         {
+            var dbResult = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var original = dbResult.Data; 
+
+            if (fotoUpload != null && fotoUpload.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Fotografia = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Fotografia = original?.Fotografia;
+            }
+
+            if (original != null && model.Contrasena == original.Contrasena)
+            {
+                model.Contrasena = "";
+            }
+
+            ModelState.Remove("Contrasena");
+            ModelState.Remove("Fotografia");
+
             if (!ModelState.IsValid) return View(model);
 
             var res = await Crud<Candidato>.UpdateAsync(_endpoint, id.ToString(), model);

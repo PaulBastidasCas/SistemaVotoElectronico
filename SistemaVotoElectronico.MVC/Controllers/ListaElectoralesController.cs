@@ -27,18 +27,50 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ListaElectoral model)
+        public async Task<IActionResult> Create(ListaElectoral model, IFormFile? fotoUpload)
         {
-            if (!ModelState.IsValid) return View(model);
-
-            var res = await Crud<ListaElectoral>.CreateAsync(_endpoint, model);
-
-            if (res.Success)
+            if (fotoUpload != null && fotoUpload.Length > 0)
             {
-                return RedirectToAction(nameof(Index));
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Logotipo = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Logotipo = "";
             }
 
-            ModelState.AddModelError("", res.Message);
+            ModelState.Remove("Logotipo");
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    model.Id = 0;
+                    model.Eleccion = null;
+                    model.Candidatos = null;
+
+                    var resultado = await Crud<ListaElectoral>.CreateAsync(_endpoint, model);
+
+                    if (resultado.Success)
+                    {
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", $"Error API: {resultado.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error de conexión: {ex.Message}");
+                }
+            }
             return View(model);
         }
 
@@ -50,22 +82,36 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ListaElectoral model)
+        public async Task<IActionResult> Edit(int id, ListaElectoral model, IFormFile? fotoUpload)
         {
+            var dbResult = await Crud<ListaElectoral>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var original = dbResult.Data;
+
+            if (fotoUpload != null && fotoUpload.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await fotoUpload.CopyToAsync(ms);
+                    var bytes = ms.ToArray();
+                    var base64 = Convert.ToBase64String(bytes);
+                    var ext = Path.GetExtension(fotoUpload.FileName).Replace(".", "");
+                    model.Logotipo = $"data:image/{ext};base64,{base64}";
+                }
+            }
+            else
+            {
+                model.Logotipo = original?.Logotipo;
+            }
+
+            ModelState.Remove("Logotipo");
+
             if (!ModelState.IsValid) return View(model);
 
             var res = await Crud<ListaElectoral>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
-                if (User.IsInRole("Candidato"))
-                {
-                    return RedirectToAction("Perfil", "Home");
-                }
-                else
-                {
-                    return RedirectToAction(nameof(Index));
-                }
+                return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", res.Message);
