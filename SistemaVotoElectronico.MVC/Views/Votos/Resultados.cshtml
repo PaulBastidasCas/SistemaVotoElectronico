@@ -1,0 +1,146 @@
+﻿@model SistemaVotoElectronico.Modelos.ResultadoEleccionDto
+@using Newtonsoft.Json
+
+@{
+    ViewData["Title"] = "Resultados Electorales";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">@Model.Eleccion</h2>
+            <p class="text-muted">
+                Total Votos: <strong>@Model.TotalVotos.ToString("N0")</strong> |
+                Escaños a repartir: <strong>@Model.TotalEscanos</strong> |
+                Corte: @Model.FechaCorte
+            </p>
+        </div>
+        <div>
+            <a asp-action="DescargarPdf" asp-route-id="@ViewContext.RouteData.Values["id"]" class="btn btn-danger btn-lg shadow">
+                📄 Descargar Reporte Oficial (PDF)
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold">Tendencia de Voto</div>
+                <div class="card-body">
+                    <canvas id="barChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white fw-bold">Distribución de Escaños (Webster)</div>
+                <div class="card-body">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Tabla Detallada de Resultados</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Organización Política</th>
+                            <th class="text-center">Votos Totales</th>
+                            <th class="text-center">Porcentaje</th>
+                            <th class="text-center">Escaños Asignados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Resultados)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge me-2" style="background-color: @item.Color; width: 15px; height: 15px; display:inline-block;"> </span>
+                                    <strong>@item.Siglas</strong> - @item.Lista
+                                </td>
+                                <td class="text-center">@item.VotosTotales.ToString("N0")</td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <span class="me-2">@item.Porcentaje%</span>
+                                        <div class="progress" style="width: 100px; height: 6px;">
+                                            <div class="progress-bar" role="progressbar" style="width: @item.Porcentaje%; background-color: @item.Color"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    @if (item.EscanosAsignados > 0)
+                                    {
+                                        <span class="badge bg-success fs-6">@item.EscanosAsignados 🏛️</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        var etiquetas = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Siglas)));
+        var votos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.VotosTotales)));
+        var escanos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.EscanosAsignados)));
+        var colores = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Color)));
+
+        // 1. Gráfico de Barras (Votos)
+        var ctxBar = document.getElementById('barChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    label: 'Número de Votos',
+                    data: votos,
+                    backgroundColor: colores,
+                    borderColor: '#ccc',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // 2. Gráfico de Dona (Escaños)
+        var ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: etiquetas,
+                datasets: [{
+                    data: escanos,
+                    backgroundColor: colores,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: { display: true, text: 'Escaños por Partido' }
+                }
+            }
+        });
+    </script>
+}

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class version1 : Migration
+    public partial class versionDefiniva : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +21,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     Cedula = table.Column<string>(type: "text", nullable: false),
                     NombreCompleto = table.Column<string>(type: "text", nullable: false),
                     Correo = table.Column<string>(type: "text", nullable: false),
-                    Contrasena = table.Column<string>(type: "text", nullable: false),
+                    Contrasena = table.Column<string>(type: "text", nullable: true),
                     Fotografia = table.Column<string>(type: "text", nullable: true),
                     Rol = table.Column<string>(type: "text", nullable: false)
                 },
@@ -55,13 +56,29 @@ namespace SistemaVotoElectronico.Api.Migrations
                     Cedula = table.Column<string>(type: "text", nullable: false),
                     NombreCompleto = table.Column<string>(type: "text", nullable: false),
                     Correo = table.Column<string>(type: "text", nullable: false),
-                    Contrasena = table.Column<string>(type: "text", nullable: false),
+                    Contrasena = table.Column<string>(type: "text", nullable: true),
                     Fotografia = table.Column<string>(type: "text", nullable: true),
                     Rol = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_JefesDeMesa", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SolicitudesRecuperacion",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Correo = table.Column<string>(type: "text", nullable: false),
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    Expiracion = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    Usado = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SolicitudesRecuperacion", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -73,8 +90,8 @@ namespace SistemaVotoElectronico.Api.Migrations
                     Cedula = table.Column<string>(type: "text", nullable: false),
                     NombreCompleto = table.Column<string>(type: "text", nullable: false),
                     Correo = table.Column<string>(type: "text", nullable: false),
-                    Contrasena = table.Column<string>(type: "text", nullable: false),
-                    Fotografia = table.Column<string>(type: "text", nullable: false),
+                    Contrasena = table.Column<string>(type: "text", nullable: true),
+                    Fotografia = table.Column<string>(type: "text", nullable: true),
                     Rol = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -160,8 +177,8 @@ namespace SistemaVotoElectronico.Api.Migrations
                     Cedula = table.Column<string>(type: "text", nullable: false),
                     NombreCompleto = table.Column<string>(type: "text", nullable: false),
                     Correo = table.Column<string>(type: "text", nullable: false),
-                    Contrasena = table.Column<string>(type: "text", nullable: false),
-                    Fotografia = table.Column<string>(type: "text", nullable: false),
+                    Contrasena = table.Column<string>(type: "text", nullable: true),
+                    Fotografia = table.Column<string>(type: "text", nullable: true),
                     Rol = table.Column<string>(type: "text", nullable: false),
                     OrdenEnLista = table.Column<int>(type: "integer", nullable: false),
                     ListaElectoralId = table.Column<int>(type: "integer", nullable: true)
@@ -265,6 +282,9 @@ namespace SistemaVotoElectronico.Api.Migrations
 
             migrationBuilder.DropTable(
                 name: "PadronElectorales");
+
+            migrationBuilder.DropTable(
+                name: "SolicitudesRecuperacion");
 
             migrationBuilder.DropTable(
                 name: "Votos");

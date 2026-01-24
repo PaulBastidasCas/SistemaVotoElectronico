@@ -12,13 +12,8 @@ using SistemaVotoElectronico.Api.Data;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-<<<<<<<< HEAD:SistemaVotoElectronico.Api/Migrations/20260121163913_version1.Designer.cs
-    [Migration("20260121163913_version1")]
-    partial class version1
-========
-    [Migration("20260122131130_versionPadron")]
-    partial class versionPadron
->>>>>>>> cbf0166647de3b1f614b46e0f7ca21dff53cf667:SistemaVotoElectronico.Api/Migrations/20260122131130_versionPadron.Designer.cs
+    [Migration("20260122181536_versionDefiniva")]
+    partial class versionDefiniva
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -43,7 +38,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Contrasena")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Correo")
@@ -79,7 +73,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Contrasena")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Correo")
@@ -87,7 +80,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Fotografia")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("ListaElectoralId")
@@ -154,7 +146,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Contrasena")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Correo")
@@ -293,6 +284,33 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("PadronElectorales");
                 });
 
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.SolicitudRecuperacion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("Expiracion")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Usado")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SolicitudesRecuperacion");
+                });
+
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.Votante", b =>
                 {
                     b.Property<int>("Id")
@@ -306,7 +324,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Contrasena")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Correo")
@@ -314,7 +331,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Fotografia")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("NombreCompleto")

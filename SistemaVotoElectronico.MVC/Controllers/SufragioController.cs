@@ -78,29 +78,49 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             int? idLista = null;
             int? idCandidato = null;
+
             string[] partes = seleccion.Split('-');
+            string tipoVoto = partes[0];
             int idSeleccionado = int.Parse(partes[1]);
-
-            if (partes[0] == "L") idLista = idSeleccionado;
-            else if (partes[0] == "C") idCandidato = idSeleccionado;
-
-            var votoRequest = new VotoRequest
-            {
-                EleccionId = eleccionId,
-                CodigoEnlace = codigoEnlace,
-                IdListaSeleccionada = idLista,
-                IdCandidatoSeleccionado = idCandidato
-            };
 
             try
             {
+                if (tipoVoto == "L")
+                {
+                    idLista = idSeleccionado;
+
+                    var listaInfo = await Crud<ListaElectoral>.ReadByAsync($"{_apiBase}/ListaElectorales", "Id", idLista.ToString());
+
+                    if (listaInfo.Success && listaInfo.Data != null && listaInfo.Data.Candidatos != null)
+                    {
+                        var candidatoPrincipal = listaInfo.Data.Candidatos
+                            .FirstOrDefault(c => c.OrdenEnLista == 1);
+
+                        if (candidatoPrincipal != null)
+                        {
+                            idCandidato = candidatoPrincipal.Id;
+                        }
+                    }
+                }
+                else if (tipoVoto == "C")
+                {
+                    idCandidato = idSeleccionado;
+                }
+
+                var votoRequest = new VotoRequest
+                {
+                    EleccionId = eleccionId,
+                    CodigoEnlace = codigoEnlace,
+                    IdListaSeleccionada = idLista,
+                    IdCandidatoSeleccionado = idCandidato
+                };
+
                 var json = JsonConvert.SerializeObject(votoRequest);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 string endpointSeguro = $"{_apiBase}/Votos/emitir";
 
                 var response = await _httpClient.PostAsync(endpointSeguro, content);
                 var responseString = await response.Content.ReadAsStringAsync();
-
                 var apiResult = JsonConvert.DeserializeObject<ApiResult<string>>(responseString);
 
                 if (response.IsSuccessStatusCode && (apiResult?.Success ?? false))

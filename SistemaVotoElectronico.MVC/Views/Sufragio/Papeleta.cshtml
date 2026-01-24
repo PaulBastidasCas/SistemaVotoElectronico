@@ -2,11 +2,15 @@
 
 @{
     ViewData["Title"] = "Papeleta Electoral";
+
+    bool esPlancha = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Plancha", StringComparison.OrdinalIgnoreCase);
+    bool esNominal = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Nominal", StringComparison.OrdinalIgnoreCase);
 }
 
 <div class="container pb-5">
     <div class="text-center mb-4">
         <h2 class="display-4">@Model.Eleccion.Nombre</h2>
+        <p class="text-muted">Modalidad: <strong>@(Model.Eleccion.TipoEleccion ?? "Estándar")</strong></p>
         <p class="lead">Seleccione su preferencia. Solo puede elegir una opción.</p>
     </div>
 
@@ -21,18 +25,23 @@
                 {
                     <div class="col-md-6 mb-4">
                         <div class="card h-100 border-primary">
+
                             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                                 <div>
                                     <h4 class="mb-0 text-primary">Lista @lista.NumeroLista - @lista.Siglas</h4>
                                     <small>@lista.Nombre</small>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="seleccion"
-                                           id="L-@lista.Id" value="L-@lista.Id" style="transform: scale(1.5);">
-                                    <label class="form-check-label font-weight-bold ml-2" for="L-@lista.Id">
-                                        VOTO LISTA
-                                    </label>
-                                </div>
+
+                                @if (esPlancha)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="seleccion"
+                                               id="L-@lista.Id" value="L-@lista.Id" style="transform: scale(1.5);">
+                                        <label class="form-check-label font-weight-bold ml-2" for="L-@lista.Id">
+                                            VOTO LISTA
+                                        </label>
+                                    </div>
+                                }
                             </div>
 
                             <div class="card-body">
@@ -40,7 +49,14 @@
                                 <ul class="list-group list-group-flush">
                                     @if (lista.Candidatos != null)
                                     {
-                                        @foreach (var candidato in lista.Candidatos.OrderBy(c => c.OrdenEnLista))
+                                        var candidatosMostrar = lista.Candidatos.OrderBy(c => c.OrdenEnLista).AsEnumerable();
+
+                                        if (esNominal)
+                                        {
+                                            candidatosMostrar = candidatosMostrar.Where(c => c.OrdenEnLista == 1);
+                                        }
+
+                                        @foreach (var candidato in candidatosMostrar)
                                         {
                                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                                 <div class="d-flex align-items-center">
@@ -50,15 +66,27 @@
                                                     }
                                                     <div>
                                                         <strong>@candidato.NombreCompleto</strong>
+                                                        <br><small class="text-muted">Orden: @candidato.OrdenEnLista</small>
                                                     </div>
                                                 </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="seleccion"
-                                                           id="C-@candidato.Id" value="C-@candidato.Id">
-                                                    <label class="form-check-label small" for="C-@candidato.Id">
-                                                        Seleccionar
-                                                    </label>
-                                                </div>
+
+                                                @if (esNominal)
+                                                {
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="seleccion"
+                                                               id="C-@candidato.Id" value="C-@candidato.Id">
+                                                        <label class="form-check-label small" for="C-@candidato.Id">
+                                                            Seleccionar
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </li>
+                                        }
+
+                                        @if (!candidatosMostrar.Any() && esNominal)
+                                        {
+                                            <li class="list-group-item text-muted small text-center">
+                                                Candidato principal no registrado.
                                             </li>
                                         }
                                     }
@@ -83,4 +111,3 @@
         </div>
     </form>
 </div>
-

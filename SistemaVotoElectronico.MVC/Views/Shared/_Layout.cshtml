@@ -25,7 +25,12 @@
                     @{
                         var controladorActual = ViewContext.RouteData.Values["Controller"]?.ToString();
                         var accionActual = ViewContext.RouteData.Values["Action"]?.ToString();
-                        bool esPaginaAuth = controladorActual == "Account" && (accionActual == "Login" || accionActual == "Register");
+
+                        bool esPaginaAuth = controladorActual == "Account" &&
+                        (accionActual == "Login" ||
+                        accionActual == "Register" ||
+                        accionActual == "ForgotPassword" || 
+                        accionActual == "ResetPassword");   
                     }
 
                     <ul class="navbar-nav flex-grow-1 align-items-center">
