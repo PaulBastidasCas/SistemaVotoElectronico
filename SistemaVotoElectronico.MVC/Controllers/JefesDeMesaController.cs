@@ -6,7 +6,13 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class JefesDeMesaController : Controller
     {
-        private readonly string _endpoint = "http://localhost:5051/api/JefesDeMesa";
+        private readonly string _endpoint;
+
+        public JefesDeMesaController(IConfiguration configuration)
+        {
+            string apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _endpoint = $"{apiBase}/JefesDeMesa";
+        }
 
         public async Task<IActionResult> Index()
         {

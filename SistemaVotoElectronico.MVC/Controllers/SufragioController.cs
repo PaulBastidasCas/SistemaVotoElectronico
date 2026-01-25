@@ -10,11 +10,12 @@ namespace SistemaVotoElectronico.MVC.Controllers
     public class SufragioController : Controller
     {
         private readonly HttpClient _httpClient;
-        private readonly string _apiBase = "http://localhost:5051/api";
+        private readonly string _apiBase;
 
-        public SufragioController()
+        public SufragioController(IConfiguration configuration)
         {
             _httpClient = new HttpClient();
+            _apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
         }
 
         [HttpGet]

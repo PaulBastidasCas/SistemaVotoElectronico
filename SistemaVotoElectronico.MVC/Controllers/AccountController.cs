@@ -11,11 +11,12 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly string _apiBaseUrl = "http://localhost:5051/api";
+        private readonly string _apiBaseUrl;
         private readonly HttpClient _httpClient;
 
-        public AccountController()
+        public AccountController(IConfiguration configuration)
         {
+            _apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
             _httpClient = new HttpClient();
         }
 

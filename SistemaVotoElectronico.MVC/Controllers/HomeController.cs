@@ -12,7 +12,12 @@ namespace SistemaVotoElectronico.MVC.Controllers
     [Authorize]
     public class HomeController : Controller
     {
-        private readonly string _apiBaseUrl = "http://localhost:5051/api";
+        private readonly string _apiBaseUrl;
+
+        public HomeController(IConfiguration configuration)
+        {
+            _apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+        }
 
         public IActionResult Index()
         {

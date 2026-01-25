@@ -6,7 +6,13 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class AdministradoresController : Controller
     {
-        private readonly string _endpoint = "http://localhost:5051/api/Administradores";
+        private readonly string _endpoint;
+
+        public AdministradoresController(IConfiguration configuration)
+        {
+            string apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _endpoint = $"{apiBase}/Administradores";
+        }
 
         // GET: AdministradoresController
         public async Task<IActionResult> Index()

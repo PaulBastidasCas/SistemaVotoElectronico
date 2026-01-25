@@ -6,7 +6,13 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class CandidatosController : Controller
     {
-        private readonly string _endpoint = "http://localhost:5051/api/Candidatos";
+        private readonly string _endpoint;
+
+        public CandidatosController(IConfiguration configuration)
+        {
+            string apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _endpoint = $"{apiBase}/Candidatos";
+        }
 
         public async Task<ActionResult> Index()
         {

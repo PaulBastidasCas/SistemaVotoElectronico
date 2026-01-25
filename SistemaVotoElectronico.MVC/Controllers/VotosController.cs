@@ -7,12 +7,12 @@ namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class VotosController : Controller
     {
-        private readonly string _apiBaseUrl = "http://localhost:5051/api";
         private readonly string _endpointVotos;
 
-        public VotosController()
+        public VotosController(IConfiguration configuration)
         {
-            _endpointVotos = $"{_apiBaseUrl}/Votos";
+            string baseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _endpointVotos = $"{baseUrl}/Votos";
         }
 
         [HttpGet]
