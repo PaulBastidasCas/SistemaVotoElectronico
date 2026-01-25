@@ -52,8 +52,11 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[FALLO EMAIL] No se pudo enviar correo a {dto.Correo}. EL TOKEN ES: {token}");
-                Console.WriteLine($"[ERROR] {ex.Message}");
+                Console.WriteLine("---------------------------------------------------");
+                Console.WriteLine($"[CORREO FALLIDO POR BLOQUEO DE PUERTO]");
+                Console.WriteLine($"PARA RECUPERAR LA CUENTA USA ESTE TOKEN: {token}");
+                Console.WriteLine("---------------------------------------------------");
+
                 return ApiResult<bool>.Fail($"Error enviando correo (Revise Logs): {ex.Message}");
             }
 
@@ -110,13 +113,12 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 EnableSsl = true,
                 UseDefaultCredentials = false,
-                Credentials = new NetworkCredential(SmtpCorreo, SmtpPassword)
+                Credentials = new NetworkCredential(SmtpCorreo, SmtpPassword),
+                Timeout = 5000 
             };
 
-            var mensaje = new MailMessage(SmtpCorreo, destino, "Recuperación de Contraseña - Voto Electrónico",
-                $"Tu código de recuperación es: <h1>{token}</h1><p>Expira en 15 minutos.</p>");
-
-            mensaje.IsBodyHtml = true;
+            var mensaje = new MailMessage(SmtpCorreo, destino, "Recuperación de Contraseña",
+                $"Token: {token}");
 
             await cliente.SendMailAsync(mensaje);
         }
