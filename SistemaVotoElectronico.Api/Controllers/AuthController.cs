@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
+using SistemaVotoElectronico.Modelos.DTOs;
 using System.Net;
 using System.Net.Mail;
 
@@ -23,20 +25,21 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost("Recuperar")]
         public async Task<ActionResult<ApiResult<bool>>> SolicitarRecuperacion(RecuperarDto dto)
         {
+            // 1. Verificar si existe el correo
             bool existe = await _context.Administradores.AnyAsync(x => x.Correo == dto.Correo) ||
                           await _context.JefesDeMesa.AnyAsync(x => x.Correo == dto.Correo) ||
                           await _context.Candidatos.AnyAsync(x => x.Correo == dto.Correo) ||
                           await _context.Votantes.AnyAsync(x => x.Correo == dto.Correo);
 
-            if (!existe) return ApiResult<bool>.Fail("El correo no está registrado en el sistema.");
+            if (!existe) return ApiResult<bool>.Fail("El correo no está registrado.");
 
-
-            var token = Guid.NewGuid().ToString().Substring(0, 6).ToUpper(); 
+            // 2. Generar Token
+            var token = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
             var solicitud = new SolicitudRecuperacion
             {
                 Correo = dto.Correo,
                 Token = token,
-                Expiracion = DateTime.UtcNow.AddMinutes(15), 
+                Expiracion = DateTime.UtcNow.AddMinutes(15),
                 Usado = false
             };
 
@@ -45,11 +48,13 @@ namespace SistemaVotoElectronico.Api.Controllers
 
             try
             {
-                EnviarCorreo(dto.Correo, token);
+                await EnviarCorreoAsync(dto.Correo, token);
             }
             catch (Exception ex)
             {
-                return ApiResult<bool>.Fail($"Error enviando correo: {ex.Message}");
+                Console.WriteLine($"[FALLO EMAIL] No se pudo enviar correo a {dto.Correo}. EL TOKEN ES: {token}");
+                Console.WriteLine($"[ERROR] {ex.Message}");
+                return ApiResult<bool>.Fail($"Error enviando correo (Revise Logs): {ex.Message}");
             }
 
             return ApiResult<bool>.Ok(true);
@@ -99,7 +104,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             return ApiResult<bool>.Fail("No se encontró el usuario asociado al token.");
         }
 
-        private void EnviarCorreo(string destino, string token)
+        private async Task EnviarCorreoAsync(string destino, string token)
         {
             var cliente = new SmtpClient("smtp.gmail.com", 587)
             {
@@ -113,7 +118,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
             mensaje.IsBodyHtml = true;
 
-            cliente.Send(mensaje);
+            await cliente.SendMailAsync(mensaje);
         }
     }
 }

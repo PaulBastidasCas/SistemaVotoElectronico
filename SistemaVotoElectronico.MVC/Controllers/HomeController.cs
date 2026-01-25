@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
 using SistemaVotoElectronico.MVC.Models;
 using System.Diagnostics;
 using System.Dynamic;

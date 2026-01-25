@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SistemaVotoElectronico.Modelos
+namespace SistemaVotoElectronico.Modelos.Entidades
 {
     public class ListaElectoral
     {

@@ -1,5 +1,4 @@
-﻿
-namespace SistemaVotoElectronico.Modelos
+﻿namespace SistemaVotoElectronico.Modelos.DTOs
 {
     public class LoginDto
     {

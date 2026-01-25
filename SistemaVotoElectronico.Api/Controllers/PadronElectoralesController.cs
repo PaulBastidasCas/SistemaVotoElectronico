@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Requests;
+using SistemaVotoElectronico.Modelos.Responses;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -22,6 +24,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.PadronElectorales
+                    .AsNoTracking()
                     .Include(p => p.Votante)  
                     .Include(p => p.Mesa)     
                     .Include(p => p.Eleccion) 
@@ -41,6 +44,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var padronElectoral = await _context.PadronElectorales
+                    .AsNoTracking()
                     .Include(p => p.Votante)
                     .Include(p => p.Mesa)
                     .Include(p => p.Eleccion)

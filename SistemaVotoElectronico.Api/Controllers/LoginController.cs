@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.DTOs;
+using SistemaVotoElectronico.Modelos.Responses;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -17,7 +18,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResult<object>>> Login(LoginDto login)
+        public async Task<ActionResult<ApiResult<LoginResponseDto>>> Login(LoginDto login)
         {
             try
             {
@@ -25,26 +26,38 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var admin = await _context.Administradores.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (admin != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, admin.Contrasena))
                 {
-                    return ApiResult<object>.Ok(new { Nombre = admin.NombreCompleto, Correo = admin.Correo, Rol = "Administrador", Id = admin.Id });
+                    return ApiResult<LoginResponseDto>.Ok(new LoginResponseDto
+                    {
+                        Id = admin.Id,
+                        Nombre = admin.NombreCompleto,
+                        Correo = admin.Correo,
+                        Rol = "Administrador"
+                    });
                 }
 
                 // 2. Verificar Jefe de Mesa
                 var jefe = await _context.JefesDeMesa.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (jefe != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, jefe.Contrasena))
                 {
-                    return ApiResult<object>.Ok(new { Nombre = jefe.NombreCompleto, Correo = jefe.Correo, Rol = "JefeDeMesa", Id = jefe.Id });
+                    return ApiResult<LoginResponseDto>.Ok(new LoginResponseDto
+                    {
+                        Id = jefe.Id,
+                        Nombre = jefe.NombreCompleto,
+                        Correo = jefe.Correo,
+                        Rol = "JefeDeMesa"
+                    });
                 }
 
                 // 3. Verificar Candidato
                 var candidato = await _context.Candidatos.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (candidato != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, candidato.Contrasena))
                 {
-                    return ApiResult<object>.Ok(new
+                    return ApiResult<LoginResponseDto>.Ok(new LoginResponseDto
                     {
+                        Id = candidato.Id,
                         Nombre = candidato.NombreCompleto,
-                        Correo = candidato.Correo, 
-                        Rol = "Candidato",
-                        Id = candidato.Id
+                        Correo = candidato.Correo,
+                        Rol = "Candidato"
                     });
                 }
 
@@ -52,14 +65,20 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var votante = await _context.Votantes.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (votante != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, votante.Contrasena))
                 {
-                    return ApiResult<object>.Ok(new { Nombre = votante.NombreCompleto, Correo = votante.Correo, Rol = "Votante", Id = votante.Id });
+                    return ApiResult<LoginResponseDto>.Ok(new LoginResponseDto
+                    {
+                        Id = votante.Id,
+                        Nombre = votante.NombreCompleto,
+                        Correo = votante.Correo,
+                        Rol = "Votante"
+                    });
                 }
 
-                return ApiResult<object>.Fail("Usuario o contraseña incorrectos");
+                return ApiResult<LoginResponseDto>.Fail("Usuario o contraseña incorrectos");
             }
             catch (Exception ex)
             {
-                return ApiResult<object>.Fail(ex.Message);
+                return ApiResult<LoginResponseDto>.Fail(ex.Message);
             }
         }
     }

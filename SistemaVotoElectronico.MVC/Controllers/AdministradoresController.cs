@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {

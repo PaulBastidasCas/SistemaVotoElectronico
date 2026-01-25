@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Responses;
 using System.Text;
 
 namespace SistemaVotoElectronico.ApiConsumer

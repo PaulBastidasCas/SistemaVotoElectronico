@@ -1,4 +1,4 @@
-﻿using SistemaVotoElectronico.Modelos;
+﻿using SistemaVotoElectronico.Modelos.Entidades;
 
 namespace SistemaVotoElectronico.MVC.Models
 {

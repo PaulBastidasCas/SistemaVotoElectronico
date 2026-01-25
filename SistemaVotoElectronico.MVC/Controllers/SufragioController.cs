@@ -2,6 +2,8 @@
 using Newtonsoft.Json;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
 using SistemaVotoElectronico.MVC.Models;
 using System.Text;
 
@@ -12,10 +14,10 @@ namespace SistemaVotoElectronico.MVC.Controllers
         private readonly HttpClient _httpClient;
         private readonly string _apiBase;
 
-        public SufragioController(IConfiguration configuration)
+        public SufragioController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
-            _httpClient = new HttpClient();
             _apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         [HttpGet]

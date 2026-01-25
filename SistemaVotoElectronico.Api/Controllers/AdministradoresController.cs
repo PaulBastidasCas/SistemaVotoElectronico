@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -23,7 +24,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var data = await _context.Administradores.ToListAsync();
+                var data = await _context.Administradores.AsNoTracking().ToListAsync();
                 Log.Information($"{data}");
                 return ApiResult<List<Administrador>>.Ok(data);
             }
@@ -41,7 +42,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var administrador = await _context.Administradores.FirstOrDefaultAsync(e => e.Id == id);
+                var administrador = await _context.Administradores.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
 
                 if (administrador == null)
                 {

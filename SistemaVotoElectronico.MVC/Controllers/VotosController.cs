@@ -1,18 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SistemaVotoElectronico.ApiConsumer;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.DTOs;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
+using System.Net.Http;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {
     public class VotosController : Controller
     {
         private readonly string _endpointVotos;
+        private readonly HttpClient _httpClient;
 
-        public VotosController(IConfiguration configuration)
+        public VotosController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             string baseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
             _endpointVotos = $"{baseUrl}/Votos";
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         [HttpGet]
@@ -20,21 +25,17 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             var urlApi = $"{_endpointVotos}/reporte-pdf/{id}";
 
-            using (var client = new HttpClient())
-            {
-                // Intentamos obtener el PDF
-                var response = await client.GetAsync(urlApi);
+            var response = await _httpClient.GetAsync(urlApi);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var pdfBytes = await response.Content.ReadAsByteArrayAsync();
-                    return File(pdfBytes, "application/pdf", $"Reporte_Eleccion_{id}.pdf");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    return Content($"Error desde la API: {response.StatusCode} - {errorContent}");
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+                return File(pdfBytes, "application/pdf", $"Reporte_Eleccion_{id}.pdf");
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return Content($"Error desde la API: {response.StatusCode} - {errorContent}");
             }
         }
 
@@ -43,17 +44,16 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             var urlApi = $"{_endpointVotos}/resultados/{id}?escanosA_Repartir=5";
 
-            using (var client = new HttpClient())
-            {
-                var response = await client.GetAsync(urlApi);
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonConvert.DeserializeObject<ApiResult<ResultadoEleccionDto>>(json);
+            var response = await _httpClient.GetAsync(urlApi);
 
-                    if (result.Success) return View(result.Data);
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<ApiResult<ResultadoEleccionDto>>(json);
+
+                if (result.Success) return View(result.Data);
             }
+
             return RedirectToAction("Index");
         }
 

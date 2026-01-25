@@ -1,5 +1,4 @@
-﻿
-namespace SistemaVotoElectronico.Modelos
+﻿namespace SistemaVotoElectronico.Modelos.Requests
 {
     public class GenerarCodigoRequest
     {

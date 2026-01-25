@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using SistemaVotoElectronico.Modelos.Entidades;
+using System.ComponentModel.DataAnnotations;
 
 namespace SistemaVotoElectronico.Modelos
 {

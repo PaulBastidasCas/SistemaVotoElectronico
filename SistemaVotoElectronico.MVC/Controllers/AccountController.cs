@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.DTOs;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
 using System.Security.Claims;
 using System.Text;
 
@@ -14,10 +17,10 @@ namespace SistemaVotoElectronico.MVC.Controllers
         private readonly string _apiBaseUrl;
         private readonly HttpClient _httpClient;
 
-        public AccountController(IConfiguration configuration)
+        public AccountController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
-            _httpClient = new HttpClient();
+            _httpClient = httpClientFactory.CreateClient();
         }
 
         [HttpGet]
@@ -169,13 +172,5 @@ namespace SistemaVotoElectronico.MVC.Controllers
             ViewData["Error"] = resultado.Message;
             return View(modelo);
         }
-    }
-
-    public class LoginResponseDto
-    {
-        public string Nombre { get; set; }
-        public string Correo { get; set; }
-        public string Rol { get; set; }
-        public int Id { get; set; }
     }
 }

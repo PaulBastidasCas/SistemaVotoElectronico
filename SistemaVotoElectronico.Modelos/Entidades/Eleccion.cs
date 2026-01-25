@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SistemaVotoElectronico.Modelos
+namespace SistemaVotoElectronico.Modelos.Entidades
 {
     public class Eleccion
     {

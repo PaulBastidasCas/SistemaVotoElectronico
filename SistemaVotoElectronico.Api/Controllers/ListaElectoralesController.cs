@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SistemaVotoElectronico.Api.Data;
-using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -24,6 +25,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var data = await _context.ListaElectorales
+                    .AsNoTracking()
                     .Include(l => l.Candidatos) 
                     .Include(l => l.Eleccion)  
                     .ToListAsync();
@@ -46,6 +48,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 var listaElectoral = await _context
                     .ListaElectorales
+                    .AsNoTracking()
                     .Include(e => e.Eleccion)
                     .Include(e => e.Candidatos)
                     .FirstOrDefaultAsync(e => e.Id == id);

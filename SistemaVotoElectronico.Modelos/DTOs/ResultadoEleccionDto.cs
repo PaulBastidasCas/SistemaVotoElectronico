@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SistemaVotoElectronico.Modelos
+namespace SistemaVotoElectronico.Modelos.DTOs
 {
     public class ResultadoEleccionDto
     {

@@ -1,5 +1,4 @@
-﻿
-namespace SistemaVotoElectronico.Modelos
+﻿namespace SistemaVotoElectronico.Modelos.Responses
 {
     public class ApiResult <T>
     {

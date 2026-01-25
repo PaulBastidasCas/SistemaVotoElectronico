@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using SistemaVotoElectronico.Modelos.DTOs;
+using SistemaVotoElectronico.Modelos.Entidades;
+using SistemaVotoElectronico.Modelos.Responses;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -13,6 +16,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             _context = context;
         }
+        
 
         [HttpGet("resultados/{eleccionId}")]
         public async Task<ActionResult<ApiResult<ResultadoEleccionDto>>> GetResultados(int eleccionId, int escanosA_Repartir = 5)
@@ -23,11 +27,13 @@ namespace SistemaVotoElectronico.Api.Controllers
                 if (eleccion == null) return ApiResult<ResultadoEleccionDto>.Fail("Elección no encontrada");
 
                 var votos = await _context.Votos
+                    .AsNoTracking()
                     .Include(v => v.Eleccion)
                     .Where(v => v.EleccionId == eleccionId)
                     .ToListAsync();
 
                 var listas = await _context.ListaElectorales
+                    .AsNoTracking()
                     .Include(l => l.Candidatos)
                     .Where(l => l.EleccionId == eleccionId)
                     .ToListAsync();
@@ -129,7 +135,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                         document.Add(new Paragraph($"Fecha de Corte: {data.FechaCorte}")
                             .SetFontSize(10).SetTextAlignment(TextAlignment.CENTER));
 
-                        document.Add(new Paragraph("\n")); 
+                        document.Add(new Paragraph("\n"));
 
                         Table table = new Table(UnitValue.CreatePercentArray(new float[] { 4, 2, 2, 2, 2 })).UseAllAvailableWidth();
 
@@ -179,6 +185,123 @@ namespace SistemaVotoElectronico.Api.Controllers
             return BadRequest($"No se pudieron obtener los datos. Mensaje: {apiResult?.Message ?? "Datos nulos"}");
         }
 
+        [HttpPost("emitir")]
+        public async Task<ActionResult<ApiResult<string>>> EmitirVoto([FromBody] VotoRequest request)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var registroPadron = await _context.PadronElectorales
+                    .Include(p => p.Votante)
+                    .Include(p => p.Eleccion)
+                    .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace && p.EleccionId == request.EleccionId);
+
+                if (registroPadron == null) return ApiResult<string>.Fail("Código inválido.");
+                if (registroPadron.CodigoCanjeado) return ApiResult<string>.Fail("Código ya usado.");
+
+                var nuevoVoto = new Voto
+                {
+                    Id = Guid.NewGuid(),
+                    EleccionId = request.EleccionId,
+                    IdListaSeleccionada = request.IdListaSeleccionada,
+                    IdCandidatoSeleccionado = request.IdCandidatoSeleccionado,
+                    FechaRegistro = DateTime.Now
+                };
+
+                _context.Votos.Add(nuevoVoto);
+
+                registroPadron.CodigoCanjeado = true;
+                registroPadron.FechaVoto = DateTime.Now;
+                registroPadron.VotoPlanchaRealizado = (request.IdListaSeleccionada != null);
+                registroPadron.VotoNominalRealizado = (request.IdCandidatoSeleccionado != null);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                try
+                {
+                    if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
+                    {
+                        await EnviarCertificadoPDF(
+                            registroPadron.Votante.NombreCompleto ?? "Ciudadano",
+                            registroPadron.Votante.Correo,
+                            registroPadron.Eleccion?.Nombre ?? "Elección",
+                            DateTime.Now
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ERROR EMAIL] No se pudo enviar el PDF: {ex.Message}");
+                    Log.Error($"Error email: {ex.Message}");
+                }
+
+                return ApiResult<string>.Ok("Voto registrado.");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return ApiResult<string>.Fail("Error interno: " + ex.Message);
+            }
+        }
+
+        private async Task EnviarCertificadoPDF(string nombreVotante, string correoDestino, string nombreEleccion, DateTime fecha)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(stream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                PdfFont bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN")
+                    .SetFont(bold).SetFontSize(20).SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph("\n"));
+
+                document.Add(new Paragraph($"Por medio de la presente se certifica que el ciudadano:")
+                   .SetFont(normal));
+
+                document.Add(new Paragraph($"{nombreVotante}")
+                    .SetFont(bold).SetFontSize(14).SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph($"Ha ejercido su derecho al voto en la elección:")
+                    .SetFont(normal));
+
+                document.Add(new Paragraph($"{nombreEleccion}")
+                    .SetFont(bold).SetFontSize(12).SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph($"Fecha y Hora: {fecha.ToString("dd/MM/yyyy HH:mm:ss")}")
+                    .SetFont(normal).SetTextAlignment(TextAlignment.CENTER));
+
+                document.Close(); 
+
+                string miCorreo = "bastidaspaul83@gmail.com";
+                string miPassword = "njkb gyyh qygc wviw";
+
+                var smtp = new SmtpClient("smtp.gmail.com")
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential(miCorreo, miPassword),
+                    EnableSsl = true,
+                };
+
+                var mail = new MailMessage
+                {
+                    From = new MailAddress(miCorreo, "Sistema Voto Electrónico"),
+                    Subject = "Certificado de Votación Digital",
+                    Body = $"Estimado(a) {nombreVotante}, adjunto encontrará su certificado de votación."
+                };
+
+                mail.To.Add(correoDestino);
+
+                mail.Attachments.Add(new Attachment(new MemoryStream(stream.ToArray()), "Certificado_Votacion.pdf"));
+
+                await smtp.SendMailAsync(mail);
+            }
+        }
 
         // GET: api/Votos
         [HttpGet]
@@ -186,7 +309,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var data = await _context.Votos.ToListAsync();
+                var data = await _context.Votos.AsNoTracking().ToListAsync();
                 return ApiResult<List<Voto>>.Ok(data);
             }
             catch (Exception ex)
@@ -201,7 +324,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                var voto = await _context.Votos.Include(e => e.Eleccion).FirstOrDefaultAsync(e => e.Id == id);
+                var voto = await _context.Votos.AsNoTracking().Include(e => e.Eleccion).FirstOrDefaultAsync(e => e.Id == id);
                 if (voto == null) return ApiResult<Voto>.Fail("Datos no encontrados");
                 return ApiResult<Voto>.Ok(voto);
             }
@@ -238,87 +361,6 @@ namespace SistemaVotoElectronico.Api.Controllers
             try { await _context.SaveChangesAsync(); }
             catch (Exception ex) { return ApiResult<Voto>.Fail(ex.Message); }
             return ApiResult<Voto>.Ok(null);
-        }
-
-        [HttpPost("emitir")]
-        public async Task<ActionResult<ApiResult<string>>> EmitirVoto([FromBody] VotoRequest request)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var registroPadron = await _context.PadronElectorales
-                    .Include(p => p.Votante).Include(p => p.Eleccion)
-                    .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace && p.EleccionId == request.EleccionId);
-
-                if (registroPadron == null) return ApiResult<string>.Fail("Código inválido.");
-                if (registroPadron.CodigoCanjeado) return ApiResult<string>.Fail("Código ya usado.");
-
-                var nuevoVoto = new Voto
-                {
-                    Id = Guid.NewGuid(),
-                    EleccionId = request.EleccionId,
-                    IdListaSeleccionada = request.IdListaSeleccionada,
-                    IdCandidatoSeleccionado = request.IdCandidatoSeleccionado,
-                    FechaRegistro = DateTime.Now
-                };
-
-                _context.Votos.Add(nuevoVoto);
-                registroPadron.CodigoCanjeado = true;
-                registroPadron.FechaVoto = DateTime.Now;
-                registroPadron.VotoPlanchaRealizado = (request.IdListaSeleccionada != null);
-                registroPadron.VotoNominalRealizado = (request.IdCandidatoSeleccionado != null);
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
-                try
-                {
-                    if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
-                    {
-                        EnviarCertificadoPDF(registroPadron.Votante.NombreCompleto ?? "Ciudadano", registroPadron.Votante.Correo, registroPadron.Eleccion?.Nombre ?? "Elección", DateTime.Now);
-                    }
-                }
-                catch (Exception ex) { Log.Error($"Error email: {ex.Message}"); }
-
-                return ApiResult<string>.Ok("Voto registrado.");
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                return ApiResult<string>.Fail("Error interno.");
-            }
-        }
-
-        private void EnviarCertificadoPDF(string nombreVotante, string correoDestino, string nombreEleccion, DateTime fecha)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                PdfWriter writer = new PdfWriter(stream);
-                PdfDocument pdf = new PdfDocument(writer);
-                Document document = new Document(pdf);
-                PdfFont bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-                PdfFont normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
-
-                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN").SetFont(bold).SetFontSize(20));
-                document.Add(new Paragraph($"Ciudadano: {nombreVotante}").SetFont(normal));
-                document.Add(new Paragraph($"Elección: {nombreEleccion}").SetFont(normal));
-                document.Add(new Paragraph($"Fecha: {fecha}").SetFont(normal));
-                document.Close();
-
-                string miCorreo = "bastidaspaul83@gmail.com";
-                string miPassword = "njkb gyyh qygc wviw";
-
-                var smtp = new SmtpClient("smtp.gmail.com")
-                {
-                    Port = 587,
-                    Credentials = new NetworkCredential(miCorreo, miPassword),
-                    EnableSsl = true,
-                };
-                var mail = new MailMessage { From = new MailAddress(miCorreo), Subject = "Certificado", Body = "Adjunto certificado." };
-                mail.To.Add(correoDestino);
-                mail.Attachments.Add(new Attachment(new MemoryStream(stream.ToArray()), "Certificado.pdf"));
-                smtp.Send(mail);
-            }
         }
     }
 }
