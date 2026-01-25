@@ -32,7 +32,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (registroPadron == null)
                 {
-                    Console.WriteLine("[ERROR] Código no encontrado en BD");
+                    Console.WriteLine("[ERROR] Código no encontrado en BD"); 
                     return ApiResult<string>.Fail("Código inválido.");
                 }
 
@@ -60,7 +60,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                Console.WriteLine("[EXITO] Voto guardado en BD. Preparando correo...");
+                Console.WriteLine("[EXITO] Voto guardado en BD. Preparando correo..."); 
 
                 if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
                 {
@@ -78,7 +78,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     {
                         try
                         {
-                            Console.WriteLine("[ASYNC] Iniciando envío SMTP..."); 
+                            Console.WriteLine("[ASYNC] Iniciando envío SMTP...");
                             await EnviarCertificadoPDF(datos.Nombre, datos.Correo, datos.Eleccion, datos.Fecha);
                             Console.WriteLine("[ASYNC] ¡Correo enviado con éxito!"); 
                         }
@@ -91,7 +91,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 }
                 else
                 {
-                    Console.WriteLine("[AVISO] El votante no tiene correo o es nulo. No se envía nada."); /
+                    Console.WriteLine("[AVISO] El votante no tiene correo o es nulo. No se envía nada.");
                 }
 
                 return ApiResult<string>.Ok("Voto registrado.");
