@@ -1,35 +1,76 @@
 ﻿@using SistemaVotoElectronico.Modelos.DTOs
 @model RegistroDto
-<h2>Registro</h2>
-
-@if (ViewData["Error"] != null)
-{
-    <div class="alert alert-danger">@ViewData["Error"]</div>
+@{
+    ViewData["Title"] = "Registro";
 }
 
-<form asp-action="Register" method="post">
-    <div class="mb-3">
-        <label>Cédula</label>
-        <input asp-for="Cedula" class="form-control" />
+<div class="auth-wrapper">
+    <div class="col-md-10 col-lg-7 col-xl-6">
+        <div class="auth-card register-mode">
+            <div class="auth-body">
+                <div class="text-center mb-5">
+                    <h2 class="auth-title">Crear una Cuenta</h2>
+                    <p class="auth-subtitle">Únete al sistema de voto electrónico en segundos</p>
+                </div>
+
+                @if (ViewData["Error"] != null)
+                {
+                    <div class="alert alert-danger rounded-3 mb-4 shadow-sm">@ViewData["Error"]</div>
+                }
+
+                <form asp-action="Register" method="post">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="Cedula" class="form-control" placeholder="x" />
+                                <label class="text-muted">Cédula de Identidad</label>
+                            </div>
+                            <span asp-validation-for="Cedula" class="text-danger small ms-1 fw-bold"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="NombreCompleto" class="form-control" placeholder="x" />
+                                <label class="text-muted">Nombre Completo</label>
+                            </div>
+                            <span asp-validation-for="NombreCompleto" class="text-danger small ms-1 fw-bold"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <input asp-for="Correo" class="form-control" placeholder="x" type="email" />
+                                <label class="text-muted">Correo Electrónico</label>
+                            </div>
+                            <span asp-validation-for="Correo" class="text-danger small ms-1 fw-bold"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="Contrasena" class="form-control" placeholder="x" type="password" />
+                                <label class="text-muted">Contraseña</label>
+                            </div>
+                            <span asp-validation-for="Contrasena" class="text-danger small ms-1 fw-bold"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="ConfirmarContrasena" class="form-control" placeholder="x" type="password" />
+                                <label class="text-muted">Confirmar Contraseña</label>
+                            </div>
+                            <span asp-validation-for="ConfirmarContrasena" class="text-danger small ms-1 fw-bold"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <button type="submit" class="btn btn-success w-100 py-3 rounded-3 fw-bold shadow" style="font-size: 1.1rem;">
+                            <i class="fa-solid fa-check me-2"></i> Completar Registro
+                        </button>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <span class="text-muted">¿Ya tienes cuenta?</span>
+                        <a asp-action="Login" class="fw-bold ms-1 text-primary text-decoration-none">Inicia Sesión aquí</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Nombre Completo</label>
-        <input asp-for="NombreCompleto" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label>Correo</label>
-        <input asp-for="Correo" class="form-control" type="email" />
-        <span asp-validation-for="Correo" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label>Contraseña</label>
-        <input asp-for="Contrasena" class="form-control" type="password" />
-        <span asp-validation-for="Contrasena" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label>Confirmar Contraseña</label>
-        <input asp-for="ConfirmarContrasena" class="form-control" type="password" />
-        <span asp-validation-for="ConfirmarContrasena" class="text-danger"></span>
-    </div>
-    <button type="submit" class="btn btn-success">Registrarse</button>
-</form>
+</div>

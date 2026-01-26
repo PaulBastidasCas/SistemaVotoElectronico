@@ -117,6 +117,10 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             if (res.Success)
             {
+                if (User.IsInRole("Candidato"))
+                {
+                    return RedirectToAction("Perfil", "Home");
+                }
                 return RedirectToAction(nameof(Index));
             }
 

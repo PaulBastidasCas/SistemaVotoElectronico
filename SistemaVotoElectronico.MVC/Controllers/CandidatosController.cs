@@ -95,7 +95,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         public async Task<IActionResult> Edit(int id, Candidato model, IFormFile? fotoUpload)
         {
             var dbResult = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
-            var original = dbResult.Data; 
+            var original = dbResult.Data;
 
             if (fotoUpload != null && fotoUpload.Length > 0)
             {
@@ -127,6 +127,10 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             if (res.Success)
             {
+                if (User.IsInRole("Candidato"))
+                {
+                    return RedirectToAction("Perfil", "Home");
+                }
                 return RedirectToAction(nameof(Index));
             }
 

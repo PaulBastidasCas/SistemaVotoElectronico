@@ -1,142 +1,192 @@
 ﻿@model dynamic
-
 @{
-    ViewData["Title"] = "Perfil de Usuario";
+    ViewData["Title"] = "Mi Perfil";
 }
 
-<div class="container py-4">
+<div class="container py-5">
     @if (TempData["Mensaje"] != null)
     {
-        <div class="alert alert-@TempData["Tipo"] alert-dismissible fade show" role="alert">
-            @TempData["Mensaje"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="alert alert-@TempData["Tipo"] alert-dismissible fade show rounded-4 border-0 shadow mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-circle-info me-3 fs-4"></i>
+                <span class="fw-medium">@TempData["Mensaje"]</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card shadow-sm text-center h-100">
-                <div class="card-body">
 
-                    <div class="mb-3 d-flex flex-column align-items-center justify-content-center">
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="profile-card text-center pb-4">
+                <div class="profile-header-bg"></div>
+
+                <div class="px-4">
+                    <div class="profile-avatar-wrapper">
                         @if (!string.IsNullOrEmpty(Model.Foto))
                         {
-                            <img src="@Model.Foto" class="rounded-circle border shadow-sm mb-2" alt="Foto de perfil" style="width: 150px; height: 150px; object-fit: cover;" />
+                            <img src="@Model.Foto" class="profile-img" alt="Foto de perfil" />
                         }
                         else
                         {
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm mb-2" style="width: 150px; height: 150px; font-size: 3rem;">
-                                👤
+                            <div class="profile-img-placeholder">
+                                <i class="fa-regular fa-user"></i>
                             </div>
                         }
 
-                        <form asp-controller="Home" asp-action="UpdateProfilePhoto" enctype="multipart/form-data" method="post" class="mt-2">
-                            <label for="fileUpload" class="btn btn-sm btn-outline-primary pointer" style="cursor: pointer;">
-                                📷 Cambiar Foto
+                        <form asp-controller="Home" asp-action="UpdateProfilePhoto" enctype="multipart/form-data" method="post">
+                            <label for="fileUpload" class="btn-camera" title="Subir nueva foto">
+                                <i class="fa-solid fa-camera"></i>
                             </label>
-                            <input type="file" id="fileUpload" name="fotoUpload" accept="image/*" style="display:none;" onchange="this.form.submit()" />
+                            <input type="file" id="fileUpload" name="fotoUpload" accept="image/*" class="d-none" onchange="this.form.submit()" />
                         </form>
-                        <small class="text-muted" style="font-size: 0.75rem;">(Click para seleccionar)</small>
                     </div>
 
-                    <h3 class="card-title">@Model.Nombre</h3>
-                    <span class="badge bg-primary mb-3">@Model.Rol</span>
-                    <p class="text-muted"><small>@Model.Correo</small></p>
+                    <h3 class="fw-bold mb-1">@Model.Nombre</h3>
 
-                    <hr />
+                    <div class="mb-3">
+                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">
+                            @Model.Rol.ToUpper()
+                        </span>
+                    </div>
+                    <p class="text-muted small mb-4"><i class="fa-regular fa-envelope me-2"></i>@Model.Correo</p>
 
-                    <div class="d-flex justify-content-around text-start">
-                        <div>
-                            <small class="text-muted d-block">@Model.Stat1Label</small>
-                            <strong>@Model.Stat1Value</strong>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block">@Model.Stat2Label</small>
-                            <strong>@Model.Stat2Value</strong>
+                    <div class="stats-box mb-3">
+                        <div class="row text-center">
+                            <div class="col-6 border-end" style="border-color: var(--border-color) !important;">
+                                <div class="small text-uppercase text-muted fw-bold">@Model.Stat1Label</div>
+                                <div class="fs-4 fw-bold">@Model.Stat1Value</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-uppercase text-muted fw-bold">@Model.Stat2Label</div>
+                                <div class="fs-4 fw-bold">@Model.Stat2Value</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="card-footer bg-white border-0 pb-4">
-                    <a href="@Url.Action("Logout", "Account")" class="btn btn-outline-danger w-100">
-                        🚪 Cerrar Sesión
+
+                    <a href="@Url.Action("Logout", "Account")" class="btn btn-outline-danger w-100 rounded-pill fw-bold py-2 mt-2">
+                        <i class="fa-solid fa-power-off me-2"></i> Cerrar Sesión
                     </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-lg-8">
+            <h4 class="fw-bold mb-4 ms-2">Panel de Control</h4>
+
             @if (Model.Rol == "Administrador")
             {
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-dark text-white"><h5 class="mb-0">🛠 Panel de Administrador</h5></div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6"><a href="@Url.Action("Index", "Elecciones")" class="btn btn-outline-primary w-100 py-3">📅 Elecciones</a></div>
-                            <div class="col-md-6"><a href="@Url.Action("Index", "Mesas")" class="btn btn-outline-primary w-100 py-3">🗳️ Mesas</a></div>
-                            <div class="col-md-6"><a href="@Url.Action("Index", "PadronElectorales")" class="btn btn-outline-secondary w-100 py-3">📋 Padrón</a></div>
-                            <div class="col-md-6"><a href="@Url.Action("Index", "Votos")" class="btn btn-outline-secondary w-100 py-3">📊 Auditoría</a></div>
-                        </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index", "Elecciones")" class="dashboard-card">
+                            <div class="dashboard-icon-box d-icon-primary"><i class="fa-solid fa-calendar-days"></i></div>
+                            <h5 class="fw-bold">Elecciones</h5>
+                            <p class="text-muted small mb-0">Gestionar procesos electorales activos y cerrados.</p>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index", "Mesas")" class="dashboard-card">
+                            <div class="dashboard-icon-box d-icon-primary"><i class="fa-solid fa-person-booth"></i></div>
+                            <h5 class="fw-bold">Mesas</h5>
+                            <p class="text-muted small mb-0">Administrar puntos de votación.</p>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index", "PadronElectorales")" class="dashboard-card">
+                            <div class="dashboard-icon-box d-icon-success"><i class="fa-solid fa-users-viewfinder"></i></div>
+                            <h5 class="fw-bold">Padrón Electoral</h5>
+                            <p class="text-muted small mb-0">Base de datos de ciudadanos habilitados.</p>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index", "Votos")" class="dashboard-card">
+                            <div class="dashboard-icon-box d-icon-warning"><i class="fa-solid fa-chart-simple"></i></div>
+                            <h5 class="fw-bold">Resultados</h5>
+                            <p class="text-muted small mb-0">Auditoría de votos y gráficas en tiempo real.</p>
+                        </a>
                     </div>
                 </div>
             }
+
             else if (Model.Rol == "Candidato")
             {
-                <div class="card shadow-sm mb-4 border-warning">
-                    <div class="card-header bg-warning text-dark"><h5 class="mb-0">📢 Gestión de Mi Lista</h5></div>
-                    <div class="card-body text-center p-4">
-                        <p class="card-text mb-4">Puede editar la información de su Lista Electoral.</p>
+                <div class="dashboard-card mb-4 border-start border-4 border-warning">
+                    <div class="d-flex flex-column flex-md-row align-items-center">
+                        <div class="dashboard-icon-box d-icon-warning mb-3 mb-md-0 me-md-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="text-center text-md-start flex-grow-1">
+                            <h4 class="fw-bold">Mi Campaña</h4>
+                            <p class="text-muted">Gestione la información visible para los votantes.</p>
+                        </div>
                         @if (Model.ListaId != 0)
                         {
-                            <a href="@Url.Action("Edit", "ListaElectorales", new { id = Model.ListaId })" class="btn btn-primary btn-lg px-5 shadow">✏️ Editar mi Lista</a>
+                            <a href="@Url.Action("Edit", "ListaElectorales", new { id = Model.ListaId })" class="btn btn-warning fw-bold px-4 py-2 rounded-pill shadow-sm">
+                                Editar Lista
+                            </a>
                         }
                         else
                         {
-
-                            <div class="alert alert-warning">⚠️ No está asociado a ninguna lista.</div>
+                            <span class="badge bg-secondary">Sin lista asignada</span>
                         }
                     </div>
                 </div>
             }
+
             else if (Model.Rol == "JefeDeMesa")
             {
-                <div class="card shadow-sm mb-4 border-primary">
-                    <div class="card-header bg-primary text-white"><h5 class="mb-0">👮 Panel de Mesa</h5></div>
-                    <div class="card-body text-center p-5">
-                        <h4 class="card-title">Autorización</h4>
-                        <a href="@Url.Action("Autorizar", "PadronElectorales")" class="btn btn-primary btn-lg px-5 shadow">🔍 Buscar Votante y Generar Código</a>
+                <div class="dashboard-card bg-primary bg-opacity-10 border-0 mb-4">
+                    <div class="text-center py-4">
+                        <div class="dashboard-icon-box d-icon-primary mx-auto mb-3" style="width: 90px; height: 90px; font-size: 3rem;">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <h3 class="fw-bold text-primary">Operaciones de Mesa</h3>
+                        <p class="text-muted mb-4" style="max-width: 500px; margin: 0 auto;">Utilice esta herramienta para validar la identidad de los votantes y habilitar su acceso a la cabina de votación.</p>
+
+                        <a href="@Url.Action("Autorizar", "PadronElectorales")" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow">
+                            <i class="fa-solid fa-magnifying-glass me-2"></i> Buscar Votante
+                        </a>
                     </div>
                 </div>
             }
+
             else if (Model.Rol == "Votante")
             {
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-success text-white"><h5 class="mb-0">📜 Historial</h5></div>
-                    <div class="card-body">
-                        @if (Model.Items != null && Model.Items.Count > 0)
-                        {
-                            <ul class="list-group list-group-flush">
-                                @foreach (var item in Model.Items)
-                                {
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <div><strong>@item.Titulo</strong><br /><small class="text-muted">@(item.HaVotado ? "Completado" : "En espera")</small></div>
-                                        @if (item.HaVotado)
-                                        {
-                                            <span class="badge bg-success rounded-pill">Voto Emitido</span>
-                                        }
-                                        else
-                                        {
+                <div class="dashboard-card">
+                    <h5 class="fw-bold mb-4 border-bottom pb-3">Historial de Participación</h5>
 
-                                            <span class="badge bg-warning text-dark rounded-pill">Pendiente</span>
-                                        }
-                                    </li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
+                    @if (Model.Items != null && Model.Items.Count > 0)
+                    {
+                        <div class="timeline-container">
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-dot @(item.HaVotado ? "active" : "")"></div>
+                                    <h6 class="fw-bold mb-1">@item.Titulo</h6>
+                                    <p class="text-muted small mb-2">Estado: @(item.HaVotado ? "Voto Registrado" : "Pendiente")</p>
 
-                            <div class="text-center py-4 text-muted"><p class="mb-0">Sin historial.</p></div>
-                        }
-                    </div>
+                                    @if (item.HaVotado)
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">
+                                            <i class="fa-solid fa-check me-1"></i> Completado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3">
+                                            <i class="fa-regular fa-clock me-1"></i> Pendiente
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted opacity-50">
+                            <i class="fa-regular fa-folder-open display-4 mb-3"></i>
+                            <p>No hay registros en tu historial.</p>
+                        </div>
+                    }
                 </div>
             }
         </div>

@@ -1,0 +1,264 @@
+﻿/* =========================================
+   1. AUTENTICACIÓN (Login/Register)
+   ========================================= */
+.auth-wrapper {
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background: radial-gradient(circle at top, var(--accent-glow), transparent 40%);
+}
+
+.auth-card {
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-hover);
+    overflow: hidden;
+    position: relative;
+    border-top: 5px solid var(--text-brand);
+}
+
+    .auth-card.register-mode {
+        border-top-color: #10b981;
+    }
+
+.auth-body {
+    padding: 3.5rem;
+}
+
+.auth-title {
+    font-weight: 800;
+    color: var(--text-main); 
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+}
+
+.auth-icon-circle {
+    width: 80px;
+    height: 80px;
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--text-brand);
+    margin: 0 auto 1.5rem auto;
+}
+
+/* INPUTS */
+.form-floating > .form-control {
+    border-radius: 12px;
+    border: 2px solid var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-main); 
+    font-weight: 500;
+}
+
+    .form-floating > .form-control:focus {
+        border-color: var(--text-brand);
+        background-color: var(--bg-input);
+        color: var(--text-main);
+        box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+
+.form-floating > label {
+    color: var(--text-muted); 
+}
+
+/* Autocomplete fix para Chrome Dark Mode */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--text-main);
+    -webkit-box-shadow: 0 0 0px 1000px var(--bg-input) inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* =========================================
+   2. PERFIL (DASHBOARD)
+   ========================================= */
+
+/* Forzar colores dentro del perfil para evitar invisibilidad */
+.profile-card h3, .profile-card h4, .profile-card h5 {
+    color: var(--text-main) !important;
+}
+
+.profile-card p, .profile-card small {
+    color: var(--text-muted) !important;
+}
+
+.profile-card {
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    height: 100%;
+}
+
+.profile-header-bg {
+    height: 140px;
+    background: var(--primary-gradient);
+    opacity: 0.95;
+}
+
+.profile-avatar-wrapper {
+    margin-top: -75px;
+    text-align: center;
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 6px solid var(--bg-surface);
+    object-fit: cover;
+    background-color: var(--bg-surface);
+}
+
+.profile-img-placeholder {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 6px solid var(--bg-surface);
+    background-color: var(--bg-body);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: var(--text-muted);
+}
+
+.btn-camera {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(35px);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--text-brand);
+    color: white;
+    border: 3px solid var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* DASHBOARD CARDS (Solución al texto negro) */
+.dashboard-card {
+    display: block;
+    text-decoration: none;
+    background: var(--bg-surface);
+    border-radius: 20px;
+    padding: 1.5rem;
+    height: 100%;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
+    color: var(--text-main);  
+}
+
+    /* Forzar explicitamente los colores de los hijos */
+    .dashboard-card h5, .dashboard-card h4, .dashboard-card h6 {
+        color: var(--text-main) !important;
+    }
+
+    .dashboard-card p, .dashboard-card small {
+        color: var(--text-muted) !important;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+        border-color: transparent;
+    }
+
+    .dashboard-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 6px;
+        background: var(--text-brand);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .dashboard-card:hover::before {
+        opacity: 1;
+    }
+
+.dashboard-icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    background-color: var(--bg-body); /* Fondo oscuro en dark mode */
+}
+
+/* Colores de Iconos */
+.d-icon-primary {
+    color: var(--text-brand);
+    border: 1px solid rgba(9, 132, 227, 0.3);
+}
+
+.d-icon-success {
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.d-icon-warning {
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.d-icon-danger {
+    color: #d63031;
+    border: 1px solid rgba(214, 48, 49, 0.3);
+}
+
+/* Timeline */
+.timeline-item {
+    position: relative;
+    padding-bottom: 2rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid var(--border-color);
+}
+
+.timeline-dot {
+    position: absolute;
+    left: -9px;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 3px solid var(--text-muted);
+}
+
+    .timeline-dot.active {
+        border-color: #10b981;
+        background: #10b981;
+    }

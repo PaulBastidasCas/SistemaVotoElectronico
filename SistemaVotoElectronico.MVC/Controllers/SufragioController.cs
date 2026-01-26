@@ -48,6 +48,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     ViewBag.Error = "No hay ninguna elección activa en este momento.";
                     return View("Index");
                 }
+
                 var listasRes = await Crud<ListaElectoral>.ReadAllAsync($"{_apiBase}/ListaElectorales");
 
                 var listasFiltradas = listasRes.Data?
@@ -75,47 +76,61 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             if (string.IsNullOrEmpty(seleccion))
             {
-                ViewBag.Error = "Su voto es nulo o inválido. Debe seleccionar una opción.";
+                ViewBag.Error = "Su voto no es válido. Debe seleccionar una opción o votar Nulo.";
                 return View("ErrorVoto");
             }
 
             int? idLista = null;
             int? idCandidato = null;
 
-            string[] partes = seleccion.Split('-');
-            string tipoVoto = partes[0];
-            int idSeleccionado = int.Parse(partes[1]);
-
-            try
+            if (seleccion != "NULO")
             {
-                if (tipoVoto == "L")
+                try
                 {
-                    idLista = idSeleccionado;
-
-                    var listaInfo = await Crud<ListaElectoral>.ReadByAsync($"{_apiBase}/ListaElectorales", "Id", idLista.ToString());
-
-                    if (listaInfo.Success && listaInfo.Data != null && listaInfo.Data.Candidatos != null)
+                    string[] partes = seleccion.Split('-');
+                    if (partes.Length >= 2)
                     {
-                        var candidatoPrincipal = listaInfo.Data.Candidatos
-                            .FirstOrDefault(c => c.OrdenEnLista == 1);
+                        string tipoVoto = partes[0]; 
+                        int idSeleccionado = int.Parse(partes[1]);
 
-                        if (candidatoPrincipal != null)
+                        if (tipoVoto == "L")
                         {
-                            idCandidato = candidatoPrincipal.Id;
+                            idLista = idSeleccionado;
+
+                            var listaInfo = await Crud<ListaElectoral>.ReadByAsync($"{_apiBase}/ListaElectorales", "Id", idLista.ToString());
+
+                            if (listaInfo.Success && listaInfo.Data != null && listaInfo.Data.Candidatos != null)
+                            {
+                                var candidatoPrincipal = listaInfo.Data.Candidatos
+                                    .FirstOrDefault(c => c.OrdenEnLista == 1);
+
+                                if (candidatoPrincipal != null)
+                                {
+                                    idCandidato = candidatoPrincipal.Id;
+                                }
+                            }
+                        }
+                        else if (tipoVoto == "C")
+                        {
+                            idCandidato = idSeleccionado;
                         }
                     }
                 }
-                else if (tipoVoto == "C")
+                catch
                 {
-                    idCandidato = idSeleccionado;
+                    ViewBag.Error = "Error al procesar la selección del voto.";
+                    return View("ErrorVoto");
                 }
+            }
 
+            try
+            {
                 var votoRequest = new VotoRequest
                 {
                     EleccionId = eleccionId,
                     CodigoEnlace = codigoEnlace,
-                    IdListaSeleccionada = idLista,
-                    IdCandidatoSeleccionado = idCandidato
+                    IdListaSeleccionada = idLista,       
+                    IdCandidatoSeleccionado = idCandidato 
                 };
 
                 var json = JsonConvert.SerializeObject(votoRequest);
@@ -138,7 +153,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Error crítico de comunicación: " + ex.Message;
+                ViewBag.Error = "Error crítico de comunicación con el servidor: " + ex.Message;
                 return View("ErrorVoto");
             }
         }
