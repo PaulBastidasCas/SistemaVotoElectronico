@@ -147,8 +147,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 var votos = await _context.Votos
                     .AsNoTracking()
-                    .Include(v => v.Eleccion)
-                    .Where(v => v.EleccionId == eleccionId)
+                    .Where(v => v.EleccionId == eleccionId) 
                     .ToListAsync();
 
                 var listas = await _context.ListaElectorales
@@ -162,18 +161,20 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 foreach (var lista in listas)
                 {
-                    int votosPlancha = votos.Count(v => v.IdListaSeleccionada == lista.Id);
                     var idsCandidatos = lista.Candidatos.Select(c => c.Id).ToList();
-                    int votosNominales = votos.Count(v => v.IdCandidatoSeleccionado.HasValue && idsCandidatos.Contains(v.IdCandidatoSeleccionado.Value));
 
-                    int totalLista = votosPlancha + votosNominales;
+                    int totalLista = votos.Count(v =>
+                        v.IdListaSeleccionada == lista.Id ||
+                        (v.IdCandidatoSeleccionado.HasValue && idsCandidatos.Contains(v.IdCandidatoSeleccionado.Value))
+                    );
+
                     totalVotosValidos += totalLista;
 
                     resultadosListas.Add(new DetalleListaDto
                     {
                         Lista = lista.Nombre,
                         Siglas = lista.Siglas,
-                        Color = lista.Color ?? "#808080",
+                        Color = !string.IsNullOrEmpty(lista.Color) ? lista.Color : "#6c757d",
                         VotosTotales = totalLista,
                         EscanosAsignados = 0
                     });

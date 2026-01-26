@@ -35,6 +35,11 @@ namespace SistemaVotoElectronico.Api
 
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true;
+            });
+
             builder.Services.AddDbContext<SistemaVotoElectronicoApiContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("SistemaVotacionAPIContext.postgresql")
             ?? throw new InvalidOperationException("Connection string not found.")));
@@ -60,6 +65,8 @@ namespace SistemaVotoElectronico.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             //}
+
+            app.UseResponseCompression();
 
             app.UseHttpsRedirection();
 

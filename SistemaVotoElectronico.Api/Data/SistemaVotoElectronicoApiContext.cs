@@ -24,5 +24,18 @@ namespace SistemaVotoElectronico.Api.Data
         public DbSet<JefeDeMesa> JefesDeMesa { get; set; } = default!;
         public DbSet<Mesa> Mesas { get; set; } = default!;
         public DbSet<SolicitudRecuperacion> SolicitudesRecuperacion { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            // 1. Índices para LOGIN (Búsqueda rápida por Correo)
+            modelBuilder.Entity<Administrador>().HasIndex(x => x.Correo).IsUnique();
+            modelBuilder.Entity<JefeDeMesa>().HasIndex(x => x.Correo).IsUnique();
+            modelBuilder.Entity<Candidato>().HasIndex(x => x.Correo).IsUnique();
+            modelBuilder.Entity<Votante>().HasIndex(x => x.Correo).IsUnique();
+            modelBuilder.Entity<Votante>().HasIndex(x => x.Cedula).IsUnique();
+            // Ayuda a validar códigos de enlace rápido
+            modelBuilder.Entity<PadronElectoral>().HasIndex(x => x.CodigoEnlace);
+        }
     }
 }

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class versionDefiniva : Migration
+    public partial class Prueba : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -230,9 +230,27 @@ namespace SistemaVotoElectronico.Api.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Administradores_Correo",
+                table: "Administradores",
+                column: "Correo",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Candidatos_Correo",
+                table: "Candidatos",
+                column: "Correo",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Candidatos_ListaElectoralId",
                 table: "Candidatos",
                 column: "ListaElectoralId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JefesDeMesa_Correo",
+                table: "JefesDeMesa",
+                column: "Correo",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ListaElectorales_EleccionId",
@@ -251,6 +269,11 @@ namespace SistemaVotoElectronico.Api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_PadronElectorales_CodigoEnlace",
+                table: "PadronElectorales",
+                column: "CodigoEnlace");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PadronElectorales_EleccionId",
                 table: "PadronElectorales",
                 column: "EleccionId");
@@ -264,6 +287,18 @@ namespace SistemaVotoElectronico.Api.Migrations
                 name: "IX_PadronElectorales_VotanteId",
                 table: "PadronElectorales",
                 column: "VotanteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Votantes_Cedula",
+                table: "Votantes",
+                column: "Cedula",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Votantes_Correo",
+                table: "Votantes",
+                column: "Correo",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Votos_EleccionId",

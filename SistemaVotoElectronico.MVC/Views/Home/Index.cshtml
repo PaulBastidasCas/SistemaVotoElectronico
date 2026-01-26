@@ -1,8 +1,159 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model SistemaVotoElectronico.Modelos.DTOs.ResultadoEleccionDto
+@using Newtonsoft.Json
+
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (Model == null)
+{
+    <div class="text-center mt-5">
+        <h1 class="display-4 fw-bold text-primary">SISTEMA DE VOTO ELECTRÓNICO</h1>
+        <p class="lead text-muted mt-3">Bienvenido a la plataforma de sufragio digital.</p>
+
+        <div class="alert alert-info mt-4 d-inline-block shadow-sm">
+            <i class="fa fa-info-circle me-2"></i>
+            Actualmente <strong>no hay resultados disponibles</strong> o no hay una elección activa en curso.
+        </div>
+
+        <div class="mt-5">
+            <img src="https://cdn-icons-png.flaticon.com/512/2633/2633848.png" alt="Voto" width="200" style="opacity: 0.8;" />
+        </div>
+
+        <div class="mt-5">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a href="@Url.Action("Perfil", "Home")" class="btn btn-primary btn-lg px-5 shadow">Ir a mi Perfil</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg px-5 shadow">Iniciar Sesión</a>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="text-center mb-4">
+        <h1 class="display-5">RESULTADOS EN TIEMPO REAL</h1>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded shadow-sm">
+            <div>
+                <h2 class="fw-bold text-dark m-0">@Model.Eleccion</h2>
+                <small class="text-muted">
+                    Corte: @Model.FechaCorte | Votos: <strong>@Model.TotalVotos.ToString("N0")</strong>
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Tendencia de Voto</div>
+                    <div class="card-body">
+                        <canvas id="barChart" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white fw-bold">Escaños (Webster)</div>
+                    <div class="card-body">
+                        <canvas id="doughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Detalle por Organización</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Organización</th>
+                                <th class="text-center">Votos</th>
+                                <th class="text-center">%</th>
+                                <th class="text-center">Escaños</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Resultados)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge me-2 rounded-circle" style="background-color: @item.Color; width: 12px; height: 12px; display:inline-block;"> </span>
+                                        <strong>@item.Siglas</strong> - @item.Lista
+                                    </td>
+                                    <td class="text-center">@item.VotosTotales.ToString("N0")</td>
+                                    <td class="text-center">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <span class="me-2 text-muted" style="font-size: 0.85rem;">@item.Porcentaje%</span>
+                                            <div class="progress" style="width: 80px; height: 5px;">
+                                                <div class="progress-bar" role="progressbar" style="width: @item.Porcentaje%; background-color: @item.Color"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (item.EscanosAsignados > 0)
+                                        {
+                                            <span class="badge bg-success">@item.EscanosAsignados</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            var etiquetas = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Siglas)));
+            var votos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.VotosTotales)));
+            var escanos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.EscanosAsignados)));
+            var colores = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Color)));
+
+            new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: {
+                    labels: etiquetas,
+                    datasets: [{
+                        label: 'Votos',
+                        data: votos,
+                        backgroundColor: colores,
+                        borderColor: '#ddd',
+                        borderWidth: 1
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            new Chart(document.getElementById('doughnutChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: etiquetas,
+                    datasets: [{
+                        data: escanos,
+                        backgroundColor: colores,
+                        hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        </script>
+    }
+}

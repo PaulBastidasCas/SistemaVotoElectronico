@@ -12,8 +12,8 @@ using SistemaVotoElectronico.Api.Data;
 namespace SistemaVotoElectronico.Api.Migrations
 {
     [DbContext(typeof(SistemaVotoElectronicoApiContext))]
-    [Migration("20260122181536_versionDefiniva")]
-    partial class versionDefiniva
+    [Migration("20260126060559_Prueba")]
+    partial class Prueba
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace SistemaVotoElectronico.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Administrador", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Administrador", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,10 +57,13 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
                     b.ToTable("Administradores");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Candidato", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Candidato", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -98,12 +101,15 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
                     b.HasIndex("ListaElectoralId");
 
                     b.ToTable("Candidatos");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Eleccion", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Eleccion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -133,7 +139,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("Elecciones");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.JefeDeMesa", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.JefeDeMesa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,10 +171,13 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
                     b.ToTable("JefesDeMesa");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.ListaElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.ListaElectoral", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -206,7 +215,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("ListaElectorales");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Mesa", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Mesa", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -238,7 +247,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("Mesas");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.PadronElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.PadronElectoral", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -275,6 +284,8 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CodigoEnlace");
+
                     b.HasIndex("EleccionId");
 
                     b.HasIndex("MesaId");
@@ -284,7 +295,7 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.ToTable("PadronElectorales");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.SolicitudRecuperacion", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.SolicitudRecuperacion", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -309,6 +320,31 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SolicitudesRecuperacion");
+                });
+
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Voto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("EleccionId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int?>("IdCandidatoSeleccionado")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("IdListaSeleccionada")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EleccionId");
+
+                    b.ToTable("Votos");
                 });
 
             modelBuilder.Entity("SistemaVotoElectronico.Modelos.Votante", b =>
@@ -343,74 +379,55 @@ namespace SistemaVotoElectronico.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Cedula")
+                        .IsUnique();
+
+                    b.HasIndex("Correo")
+                        .IsUnique();
+
                     b.ToTable("Votantes");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Voto", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Candidato", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int?>("EleccionId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("FechaRegistro")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<int?>("IdCandidatoSeleccionado")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("IdListaSeleccionada")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EleccionId");
-
-                    b.ToTable("Votos");
-                });
-
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Candidato", b =>
-                {
-                    b.HasOne("SistemaVotoElectronico.Modelos.ListaElectoral", "ListaElectoral")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.ListaElectoral", "ListaElectoral")
                         .WithMany("Candidatos")
                         .HasForeignKey("ListaElectoralId");
 
                     b.Navigation("ListaElectoral");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.ListaElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.ListaElectoral", b =>
                 {
-                    b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.Eleccion", "Eleccion")
                         .WithMany("Listas")
                         .HasForeignKey("EleccionId");
 
                     b.Navigation("Eleccion");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Mesa", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Mesa", b =>
                 {
-                    b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.Eleccion", "Eleccion")
                         .WithMany("Mesas")
                         .HasForeignKey("EleccionId");
 
-                    b.HasOne("SistemaVotoElectronico.Modelos.JefeDeMesa", "JefeDeMesa")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.JefeDeMesa", "JefeDeMesa")
                         .WithOne("MesaAsignada")
-                        .HasForeignKey("SistemaVotoElectronico.Modelos.Mesa", "JefeDeMesaId");
+                        .HasForeignKey("SistemaVotoElectronico.Modelos.Entidades.Mesa", "JefeDeMesaId");
 
                     b.Navigation("Eleccion");
 
                     b.Navigation("JefeDeMesa");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.PadronElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.PadronElectoral", b =>
                 {
-                    b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.Eleccion", "Eleccion")
                         .WithMany()
                         .HasForeignKey("EleccionId");
 
-                    b.HasOne("SistemaVotoElectronico.Modelos.Mesa", "Mesa")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.Mesa", "Mesa")
                         .WithMany()
                         .HasForeignKey("MesaId");
 
@@ -425,28 +442,28 @@ namespace SistemaVotoElectronico.Api.Migrations
                     b.Navigation("Votante");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Voto", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Voto", b =>
                 {
-                    b.HasOne("SistemaVotoElectronico.Modelos.Eleccion", "Eleccion")
+                    b.HasOne("SistemaVotoElectronico.Modelos.Entidades.Eleccion", "Eleccion")
                         .WithMany()
                         .HasForeignKey("EleccionId");
 
                     b.Navigation("Eleccion");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Eleccion", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.Eleccion", b =>
                 {
                     b.Navigation("Listas");
 
                     b.Navigation("Mesas");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.JefeDeMesa", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.JefeDeMesa", b =>
                 {
                     b.Navigation("MesaAsignada");
                 });
 
-            modelBuilder.Entity("SistemaVotoElectronico.Modelos.ListaElectoral", b =>
+            modelBuilder.Entity("SistemaVotoElectronico.Modelos.Entidades.ListaElectoral", b =>
                 {
                     b.Navigation("Candidatos");
                 });

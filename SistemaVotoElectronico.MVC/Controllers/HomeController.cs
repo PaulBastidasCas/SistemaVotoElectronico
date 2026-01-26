@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos;
+using SistemaVotoElectronico.Modelos.DTOs;
 using SistemaVotoElectronico.Modelos.Entidades;
 using SistemaVotoElectronico.MVC.Models;
 using System.Diagnostics;
@@ -20,9 +21,26 @@ namespace SistemaVotoElectronico.MVC.Controllers
             _apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var eleccionesRes = await Crud<Eleccion>.ReadAllAsync($"{_apiBaseUrl}/Elecciones");
+            var eleccionActiva = eleccionesRes.Data?.FirstOrDefault(e => e.Activa);
+
+            if (eleccionActiva != null)
+            {
+                var resultadosRes = await Crud<ResultadoEleccionDto>.ReadByAsync(
+                    $"{_apiBaseUrl}/Votos/resultados",
+                    "Id",
+                    eleccionActiva.Id.ToString()
+                );
+
+                if (resultadosRes.Success && resultadosRes.Data != null)
+                {
+                    return View(resultadosRes.Data);
+                }
+            }
+
+            return View((ResultadoEleccionDto)null);
         }
 
         public async Task<IActionResult> Perfil()
