@@ -111,29 +111,72 @@ namespace SistemaVotoElectronico.Api.Controllers
                 PdfWriter writer = new PdfWriter(stream);
                 PdfDocument pdf = new PdfDocument(writer);
                 Document document = new Document(pdf);
-                PdfFont bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
-                PdfFont normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN").SetFont(bold).SetFontSize(20));
-                document.Add(new Paragraph($"Ciudadano: {nombreVotante}").SetFont(normal));
-                document.Add(new Paragraph($"Elección: {nombreEleccion}").SetFont(normal));
+                PdfFont fuenteNegrita = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+                PdfFont fuenteNormal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN DIGITAL")
+                    .SetFont(fuenteNegrita)
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(20));
+
+                document.Add(new Paragraph("\n\n"));
+
+                document.Add(new Paragraph("El Sistema de Voto Electrónico certifica que el ciudadano/a:")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph()
+                    .Add(new Text(nombreVotante.ToUpper())
+                        .SetFont(fuenteNegrita)
+                        .SetFontColor(ColorConstants.BLUE))
+                    .SetFontSize(16)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph("\nHa ejercido exitosamente su derecho al voto en:")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph(nombreEleccion)
+                    .SetFont(fuenteNegrita)
+                    .SetFontSize(14)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
+                document.Add(new Paragraph($"\nFecha y Hora de registro: {fecha:dd/MM/yyyy HH:mm:ss}")
+                    .SetFont(fuenteNormal));
+
+                document.Add(new Paragraph($"Identificador de Transacción: {Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}")
+                    .SetFont(fuenteNormal)
+                    .SetFontSize(10));
+
+                document.Add(new Paragraph("\n\nGracias por fortalecer la democracia.")
+                    .SetFont(fuenteNormal)
+                    .SetTextAlignment(TextAlignment.CENTER));
+
                 document.Close();
+
+                byte[] bytesPdf = stream.ToArray();
 
                 string miCorreo = "bastidaspaul83@gmail.com";
                 string miPassword = "njkb gyyh qygc wviw";
 
-                var smtp = new SmtpClient("smtp.gmail.com", 587)
+                var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
-                    EnableSsl = true,
+                    Port = 587,
                     Credentials = new NetworkCredential(miCorreo, miPassword),
-                    Timeout = 5000 
+                    EnableSsl = true,
                 };
 
-                var mail = new MailMessage { From = new MailAddress(miCorreo), Subject = "Certificado", Body = "Adjunto certificado." };
-                mail.To.Add(correoDestino);
-                mail.Attachments.Add(new Attachment(new MemoryStream(stream.ToArray()), "Certificado.pdf"));
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(miCorreo, "Sistema Voto Electrónico"),
+                    Subject = "Constancia de Votación",
+                    Body = $"Estimado/a {nombreVotante},<br/><br/>Su voto ha sido procesado correctamente.<br/>Adjunto encontrará su certificado digital de votación.<br/><br/>Atentamente,<br/>Consejo Electoral.",
+                    IsBodyHtml = true,
+                };
 
-                await smtp.SendMailAsync(mail);
+                mailMessage.To.Add(correoDestino);
+                mailMessage.Attachments.Add(new Attachment(new MemoryStream(bytesPdf), "Certificado_Votacion.pdf"));
+
+                smtpClient.Send(mailMessage);
             }
         }
 
