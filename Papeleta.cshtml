@@ -1,0 +1,115 @@
+﻿@model SistemaVotoElectronico.MVC.Models.PapeletaViewModel
+
+@{
+    ViewData["Title"] = "Papeleta Electoral";
+
+    // CAMBIO 1: Forzamos que ambas sean TRUE para que siempre se muestren los botones
+    bool esPlancha = true;
+    bool esNominal = true;
+}
+
+<div class="container pb-5">
+    <div class="text-center mb-4">
+        <h2 class="display-4">@Model.Eleccion.Nombre</h2>
+        <p class="text-muted">Modalidad: <strong>Mixta / Flexible</strong></p>
+        <p class="lead">Seleccione su preferencia. Solo puede elegir una opción.</p>
+    </div>
+
+    <form asp-action="EmitirVoto" method="post">
+        <input type="hidden" name="eleccionId" value="@Model.Eleccion.Id" />
+        <input type="hidden" name="codigoEnlace" value="@Model.CodigoEnlace" />
+
+        @if (Model.Listas != null && Model.Listas.Any())
+        {
+            <div class="row">
+                @foreach (var lista in Model.Listas)
+                {
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 border-primary shadow-sm">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="mb-0 text-primary">Lista @lista.NumeroLista - @lista.Siglas</h4>
+                                    <small>@lista.Nombre</small>
+                                </div>
+
+                                @if (esPlancha)
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="seleccion"
+                                               id="L-@lista.Id" value="L-@lista.Id" style="transform: scale(1.5);">
+                                        <label class="form-check-label font-weight-bold ml-2" for="L-@lista.Id">
+                                            VOTO LISTA
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    @if (lista.Candidatos != null)
+                                    {
+                                        var candidatosMostrar = lista.Candidatos.OrderBy(c => c.OrdenEnLista).AsEnumerable();
+
+                                        
+
+                                        @foreach (var candidato in candidatosMostrar)
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
+                                                <div class="d-flex align-items-center">
+                                                    @if (!string.IsNullOrEmpty(candidato.Fotografia))
+                                                    {
+                                                        <img src="@candidato.Fotografia" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                                    }
+                                                    <div>
+                                                        <strong>@candidato.NombreCompleto</strong>
+                                                        <br><small class="text-muted">Orden: @candidato.OrdenEnLista</small>
+                                                    </div>
+                                                </div>
+
+                                                @if (esNominal)
+                                                {
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="seleccion"
+                                                               id="C-@candidato.Id" value="C-@candidato.Id">
+                                                        <label class="form-check-label small" for="C-@candidato.Id">Seleccionar</label>
+                                                    </div>
+                                                }
+                                            </li>
+                                        }
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning text-center">No hay listas registradas.</div>
+        }
+
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-6">
+                <div class="card border-secondary bg-light">
+                    <div class="card-body text-center d-flex align-items-center justify-content-center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="seleccion" id="votoNulo" value="NULO" style="transform: scale(1.5);">
+                            <label class="form-check-label font-weight-bold ml-2 text-secondary h5 mb-0" for="votoNulo">
+                                🚫 ANULAR VOTO (VOTO NULO)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-bottom bg-white p-3 shadow-lg border-top">
+            <div class="container">
+                <button type="submit" class="btn btn-success btn-lg btn-block w-100" onclick="return confirm('¿Está seguro de emitir su voto? Esta acción no se puede deshacer.');">
+                    ✅ CONFIRMAR Y EMITIR VOTO
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
