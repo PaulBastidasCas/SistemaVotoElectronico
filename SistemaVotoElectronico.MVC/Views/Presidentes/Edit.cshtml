@@ -1,0 +1,74 @@
+@model SistemaVotoElectronico.Modelos.Entidades.Presidente
+
+@{
+    ViewData["Title"] = "Editar Presidente";
+    var listas = ViewBag.Listas as List<SistemaVotoElectronico.Modelos.Entidades.ListaElectoral>;
+}
+
+<h1>Editar Presidente</h1>
+
+<h4>Presidente</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Cedula" class="control-label"></label>
+                <input asp-for="Cedula" class="form-control" />
+                <span asp-validation-for="Cedula" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="NombreCompleto" class="control-label"></label>
+                <input asp-for="NombreCompleto" class="form-control" />
+                <span asp-validation-for="NombreCompleto" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ListaElectoralId" class="control-label">Lista Electoral</label>
+                <select asp-for="ListaElectoralId" class="form-control">
+                    <option value="">Seleccione una lista...</option>
+                    @if (listas != null)
+                    {
+                        foreach (var lista in listas)
+                        {
+                            if (Model.ListaElectoralId == lista.Id)
+                            {
+                                <option value="@lista.Id" selected>@lista.Nombre - @lista.NumeroLista</option>
+                            }
+                            else
+                            {
+                                <option value="@lista.Id">@lista.Nombre - @lista.NumeroLista</option>
+                            }
+                        }
+                    }
+                </select>
+                <span asp-validation-for="ListaElectoralId" class="text-danger"></span>
+            </div>
+             <div class="form-group">
+                <label class="control-label">Fotografía Actual</label>
+                @if (!string.IsNullOrEmpty(Model.Fotografia))
+                {
+                    <br />
+                    <img src="@Model.Fotografia" style="max-width: 100px; max-height: 100px;" />
+                }
+                else
+                {
+                    <p>No hay fotografía</p>
+                }
+            </div>
+            <div class="form-group">
+                <label class="control-label">Cambiar Fotografía</label>
+                <input type="file" name="fotoUpload" class="form-control" accept="image/*" />
+            </div>
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Volver a la lista</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

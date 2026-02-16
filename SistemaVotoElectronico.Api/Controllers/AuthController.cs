@@ -28,7 +28,6 @@ namespace SistemaVotoElectronico.Api.Controllers
             // 1. Verificar si existe el correo
             bool existe = await _context.Administradores.AnyAsync(x => x.Correo == dto.Correo) ||
                           await _context.JefesDeMesa.AnyAsync(x => x.Correo == dto.Correo) ||
-                          await _context.Candidatos.AnyAsync(x => x.Correo == dto.Correo) ||
                           await _context.Votantes.AnyAsync(x => x.Correo == dto.Correo);
 
             if (!existe) return ApiResult<bool>.Fail("El correo no está registrado.");
@@ -85,11 +84,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 if (jefe != null) { jefe.Contrasena = passHash; actualizado = true; }
             }
 
-            if (!actualizado)
-            {
-                var cand = await _context.Candidatos.FirstOrDefaultAsync(x => x.Correo == solicitud.Correo);
-                if (cand != null) { cand.Contrasena = passHash; actualizado = true; }
-            }
+
 
             if (!actualizado)
             {

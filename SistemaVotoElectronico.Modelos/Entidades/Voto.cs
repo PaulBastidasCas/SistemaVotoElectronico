@@ -10,8 +10,13 @@ namespace SistemaVotoElectronico.Modelos.Entidades
         [ForeignKey("EleccionId")]
         public Eleccion? Eleccion { get; set; }
 
-        public int? IdCandidatoSeleccionado { get; set; }
-        public int? IdListaSeleccionada { get; set; }
+        public int? ListaPresidenteId { get; set; }
+        [ForeignKey("ListaPresidenteId")]
+        public ListaElectoral? ListaPresidente { get; set; }
+
+        public int? ListaAsambleistaId { get; set; }
+        [ForeignKey("ListaAsambleistaId")]
+        public ListaElectoral? ListaAsambleista { get; set; }
         public DateTime FechaRegistro { get; set; }
     }
 }

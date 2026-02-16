@@ -1,39 +1,47 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
 using SistemaVotoElectronico.Modelos.Entidades;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {
-    public class CandidatosController : Controller
+    public class PresidentesController : Controller
     {
         private readonly string _endpoint;
+        private readonly string _endpointListas;
 
-        public CandidatosController(IConfiguration configuration)
+        public PresidentesController(IConfiguration configuration)
         {
             string apiBase = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
-            _endpoint = $"{apiBase}/Candidatos";
+            _endpoint = $"{apiBase}/Presidentes";
+            _endpointListas = $"{apiBase}/ListaElectorales";
         }
 
-        public async Task<ActionResult> Index()
+        public async Task<IActionResult> Index()
         {
-            var res = await Crud<Candidato>.ReadAllAsync(_endpoint);
-            return View(res.Data ?? new List<Candidato>());
+            var res = await Crud<Presidente>.ReadAllAsync(_endpoint);
+            return View(res.Data ?? new List<Presidente>());
         }
 
-        public async Task<ActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var res = await Crud<Presidente>.ReadByAsync(_endpoint, "Id", id.ToString());
+            if (!res.Success || res.Data == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
             return View(res.Data);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var listasResult = await Crud<ListaElectoral>.ReadAllAsync(_endpointListas);
+            ViewBag.Listas = listasResult.Data ?? new List<ListaElectoral>();
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Candidato model, IFormFile? fotoUpload)
+        public async Task<IActionResult> Create(Presidente model, IFormFile? fotoUpload)
         {
             if (fotoUpload != null && fotoUpload.Length > 0)
             {
@@ -51,21 +59,15 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 model.Fotografia = "";
             }
 
-            if (string.IsNullOrEmpty(model.Contrasena))
-            {
-                ModelState.AddModelError("Contrasena", "La contraseña es obligatoria al crear un usuario.");
-            }
-
             ModelState.Remove("Fotografia");
+            ModelState.Remove("ListaElectoral"); 
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     model.Id = 0;
-                    model.ListaElectoral = null;
-
-                    var resultado = await Crud<Candidato>.CreateAsync(_endpoint, model);
+                    var resultado = await Crud<Presidente>.CreateAsync(_endpoint, model);
 
                     if (resultado.Success)
                     {
@@ -81,21 +83,30 @@ namespace SistemaVotoElectronico.MVC.Controllers
                     ModelState.AddModelError("", $"Error de conexión: {ex.Message}");
                 }
             }
+            var listasResult = await Crud<ListaElectoral>.ReadAllAsync(_endpointListas);
+            ViewBag.Listas = listasResult.Data ?? new List<ListaElectoral>();
             return View(model);
         }
 
         public async Task<IActionResult> Edit(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var res = await Crud<Presidente>.ReadByAsync(_endpoint, "Id", id.ToString());
+            if (!res.Success || res.Data == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var listasResult = await Crud<ListaElectoral>.ReadAllAsync(_endpointListas);
+            ViewBag.Listas = listasResult.Data ?? new List<ListaElectoral>();
             return View(res.Data);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Candidato model, IFormFile? fotoUpload)
+        public async Task<IActionResult> Edit(int id, Presidente model, IFormFile? fotoUpload)
         {
-            var dbResult = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
-            var original = dbResult.Data;
+            var dbResult = await Crud<Presidente>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var original = dbResult.Data; // To keep original photo if not updated
 
             if (fotoUpload != null && fotoUpload.Length > 0)
             {
@@ -113,34 +124,36 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 model.Fotografia = original?.Fotografia;
             }
 
-            if (original != null && model.Contrasena == original.Contrasena)
+            ModelState.Remove("Fotografia");
+            ModelState.Remove("ListaElectoral");
+
+            if (!ModelState.IsValid) 
             {
-                model.Contrasena = "";
+                var listasResult = await Crud<ListaElectoral>.ReadAllAsync(_endpointListas);
+                ViewBag.Listas = listasResult.Data ?? new List<ListaElectoral>();
+                return View(model);
             }
 
-            ModelState.Remove("Contrasena");
-            ModelState.Remove("Fotografia");
-
-            if (!ModelState.IsValid) return View(model);
-
-            var res = await Crud<Candidato>.UpdateAsync(_endpoint, id.ToString(), model);
+            var res = await Crud<Presidente>.UpdateAsync(_endpoint, id.ToString(), model);
 
             if (res.Success)
             {
-                if (User.IsInRole("Candidato"))
-                {
-                    return RedirectToAction("Perfil", "Home");
-                }
                 return RedirectToAction(nameof(Index));
             }
 
             ModelState.AddModelError("", res.Message);
+            var listasResult2 = await Crud<ListaElectoral>.ReadAllAsync(_endpointListas);
+            ViewBag.Listas = listasResult2.Data ?? new List<ListaElectoral>();
             return View(model);
         }
 
         public async Task<IActionResult> Delete(int id)
         {
-            var res = await Crud<Candidato>.ReadByAsync(_endpoint, "Id", id.ToString());
+            var res = await Crud<Presidente>.ReadByAsync(_endpoint, "Id", id.ToString());
+            if (!res.Success || res.Data == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
             return View(res.Data);
         }
 
@@ -148,7 +161,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await Crud<Candidato>.DeleteAsync(_endpoint, id.ToString());
+            await Crud<Presidente>.DeleteAsync(_endpoint, id.ToString());
             return RedirectToAction(nameof(Index));
         }
     }

@@ -193,42 +193,6 @@ namespace SistemaVotoElectronico.Api.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "PadronElectorales",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    VotanteId = table.Column<int>(type: "integer", nullable: true),
-                    EleccionId = table.Column<int>(type: "integer", nullable: true),
-                    MesaId = table.Column<int>(type: "integer", nullable: true),
-                    CodigoEnlace = table.Column<string>(type: "text", nullable: true),
-                    FechaGeneracionCodigo = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    CodigoCanjeado = table.Column<bool>(type: "boolean", nullable: false),
-                    FechaVoto = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    VotoPlanchaRealizado = table.Column<bool>(type: "boolean", nullable: false),
-                    VotoNominalRealizado = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PadronElectorales", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_PadronElectorales_Elecciones_EleccionId",
-                        column: x => x.EleccionId,
-                        principalTable: "Elecciones",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PadronElectorales_Mesas_MesaId",
-                        column: x => x.MesaId,
-                        principalTable: "Mesas",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_PadronElectorales_Votantes_VotanteId",
-                        column: x => x.VotanteId,
-                        principalTable: "Votantes",
-                        principalColumn: "Id");
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Administradores_Correo",
                 table: "Administradores",

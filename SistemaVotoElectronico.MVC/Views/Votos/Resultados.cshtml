@@ -11,7 +11,8 @@
         <div>
             <h2 class="fw-bold">@Model.Eleccion</h2>
             <p class="text-muted">
-                Total Votos: <strong>@Model.TotalVotos.ToString("N0")</strong> |
+                Total Votos Presidenciales: <strong>@Model.TotalVotosPresidente.ToString("N0")</strong> <br/>
+                Total Votos Asambleistas: <strong>@Model.TotalVotosAsambleistas.ToString("N0")</strong> <br/>
                 Escaños a repartir: <strong>@Model.TotalEscanos</strong> |
                 Corte: @Model.FechaCorte
             </p>
@@ -23,29 +24,55 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold">Tendencia de Voto</div>
-                <div class="card-body">
-                    <canvas id="barChart" height="120"></canvas>
-                </div>
-            </div>
+    <!-- SECCION 1: RESULTADOS PRESIDENTE -->
+    <div class="card shadow-sm mb-5 border-primary">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">1. RESULTADOS PRESIDENCIALES</h4>
         </div>
-
-        <div class="col-md-4">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-white fw-bold">Distribución de Escaños (Webster)</div>
-                <div class="card-body">
-                    <canvas id="doughnutChart"></canvas>
-                </div>
+        <div class="card-body p-0">
+             <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0 align-middle">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Organización Política</th>
+                            <th class="text-center">Votos Totales</th>
+                            <th class="text-center">Porcentaje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.ResultadosPresidente)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge me-2" style="background-color: @item.Color; width: 15px; height: 15px; display:inline-block;"> </span>
+                                    <strong>@item.Siglas</strong> - @item.Lista
+                                </td>
+                                <td class="text-center">@item.VotosTotales.ToString("N0")</td>
+                                <td class="text-center">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <span class="me-2">@item.Porcentaje%</span>
+                                        <div class="progress" style="width: 100px; height: 6px;">
+                                            <div class="progress-bar" role="progressbar" style="width: @item.Porcentaje%; background-color: @item.Color"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
+            
+             <div class="p-3">
+                 <h6 class="text-muted">Gráfico de Tendencia Presidencial</h6>
+                 <canvas id="barChartPres" height="100"></canvas>
+             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Tabla Detallada de Resultados</h5>
+    <!-- SECCION 2: RESULTADOS ASAMBLEISTAS -->
+    <div class="card shadow-sm mb-4 border-success">
+        <div class="card-header bg-success text-white text-center">
+             <h4 class="mb-0">2. RESULTADOS ASAMBLEISTAS (WEBSTER)</h4>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -59,7 +86,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.Resultados)
+                        @foreach (var item in Model.ResultadosAsambleistas)
                         {
                             <tr>
                                 <td>
@@ -98,21 +125,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
-        var etiquetas = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Siglas)));
-        var votos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.VotosTotales)));
-        var escanos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.EscanosAsignados)));
-        var colores = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Color)));
+        var etiquetasPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.Siglas)));
+        var votosPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.VotosTotales)));
+        var coloresPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.Color)));
 
-        // 1. Gráfico de Barras (Votos)
-        var ctxBar = document.getElementById('barChart').getContext('2d');
+        // 1. Gráfico de Barras (Presidente)
+        var ctxBar = document.getElementById('barChartPres').getContext('2d');
         new Chart(ctxBar, {
             type: 'bar',
             data: {
-                labels: etiquetas,
+                labels: etiquetasPres,
                 datasets: [{
-                    label: 'Número de Votos',
-                    data: votos,
-                    backgroundColor: colores,
+                    label: 'Votos Presidenciales',
+                    data: votosPres,
+                    backgroundColor: coloresPres,
                     borderColor: '#ccc',
                     borderWidth: 1
                 }]
@@ -121,26 +147,6 @@
                 responsive: true,
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true } }
-            }
-        });
-
-        // 2. Gráfico de Dona (Escaños)
-        var ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
-        new Chart(ctxDoughnut, {
-            type: 'doughnut',
-            data: {
-                labels: etiquetas,
-                datasets: [{
-                    data: escanos,
-                    backgroundColor: colores,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Escaños por Partido' }
-                }
             }
         });
     </script>

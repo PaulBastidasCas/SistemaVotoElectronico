@@ -59,7 +59,6 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 {
                     model.Id = 0;
                     model.Eleccion = null;
-                    model.Candidatos = null;
 
                     var resultado = await Crud<ListaElectoral>.CreateAsync(_endpoint, model);
 
@@ -117,10 +116,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
             if (res.Success)
             {
-                if (User.IsInRole("Candidato"))
-                {
-                    return RedirectToAction("Perfil", "Home");
-                }
+
                 return RedirectToAction(nameof(Index));
             }
 

@@ -26,7 +26,9 @@ namespace SistemaVotoElectronico.Api.Controllers
             {
                 var data = await _context.ListaElectorales
                     .AsNoTracking()
-                    .Include(l => l.Candidatos) 
+                    .Include(l => l.Presidente)
+                    .Include(l => l.Vicepresidente)
+                    .Include(l => l.Asambleistas)
                     .Include(l => l.Eleccion)  
                     .ToListAsync();
                 Log.Information($"{data}");
@@ -50,7 +52,9 @@ namespace SistemaVotoElectronico.Api.Controllers
                     .ListaElectorales
                     .AsNoTracking()
                     .Include(e => e.Eleccion)
-                    .Include(e => e.Candidatos)
+                    .Include(l => l.Presidente)
+                    .Include(l => l.Vicepresidente)
+                    .Include(l => l.Asambleistas)
                     .FirstOrDefaultAsync(e => e.Id == id);
 
                 if (listaElectoral == null)

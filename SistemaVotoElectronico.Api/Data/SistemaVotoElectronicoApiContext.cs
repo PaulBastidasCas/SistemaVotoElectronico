@@ -15,7 +15,9 @@ namespace SistemaVotoElectronico.Api.Data
         }
 
         public DbSet<Administrador> Administradores { get; set; } = default!;
-        public DbSet<Candidato> Candidatos { get; set; } = default!;
+        public DbSet<Presidente> Presidentes { get; set; } = default!;
+        public DbSet<Vicepresidente> Vicepresidentes { get; set; } = default!;
+        public DbSet<Asambleista> Asambleistas { get; set; } = default!;
         public DbSet<Eleccion> Elecciones { get; set; } = default!;
         public DbSet<ListaElectoral> ListaElectorales { get; set; } = default!;
         public DbSet<PadronElectoral> PadronElectorales { get; set; } = default!;
@@ -28,13 +30,12 @@ namespace SistemaVotoElectronico.Api.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // 1. Índices para LOGIN (Búsqueda rápida por Correo)
+            // 1. Indices para LOGIN (Busqueda rapida por Correo)
             modelBuilder.Entity<Administrador>().HasIndex(x => x.Correo).IsUnique();
             modelBuilder.Entity<JefeDeMesa>().HasIndex(x => x.Correo).IsUnique();
-            modelBuilder.Entity<Candidato>().HasIndex(x => x.Correo).IsUnique();
             modelBuilder.Entity<Votante>().HasIndex(x => x.Correo).IsUnique();
             modelBuilder.Entity<Votante>().HasIndex(x => x.Cedula).IsUnique();
-            // Ayuda a validar códigos de enlace rápido
+            // Ayuda a validar codigos de enlace rapido
             modelBuilder.Entity<PadronElectoral>().HasIndex(x => x.CodigoEnlace);
         }
     }

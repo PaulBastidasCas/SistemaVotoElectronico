@@ -21,7 +21,7 @@
         </div>
 
         <div class="mt-5">
-            @if (User.Identity.IsAuthenticated)
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 <a href="@Url.Action("Perfil", "Home")" class="btn btn-primary btn-lg px-5 shadow">Ir a mi Perfil</a>
             }
@@ -36,123 +36,157 @@ else
 {
     <div class="text-center mb-4">
         <h1 class="display-5">RESULTADOS EN TIEMPO REAL</h1>
+        <h3 class="text-muted">@Model.Eleccion</h3>
+        <span class="badge bg-secondary">Corte: @Model.FechaCorte</span>
     </div>
 
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded shadow-sm">
-            <div>
-                <h2 class="fw-bold text-dark m-0">@Model.Eleccion</h2>
-                <small class="text-muted">
-                    Corte: @Model.FechaCorte | Votos: <strong>@Model.TotalVotos.ToString("N0")</strong>
-                </small>
+        
+        <!-- RESULTADOS PRESIDENTE -->
+        <div class="card shadow-sm mb-5 border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🗳️ Presidenciales</h5>
+                <span class="badge bg-light text-primary">Total Votos: @Model.TotalVotosPresidente.ToString("N0")</span>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">Tendencia de Voto</div>
-                    <div class="card-body">
-                        <canvas id="barChart" height="120"></canvas>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                         <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Binomio</th>
+                                        <th class="text-center">Votos</th>
+                                        <th class="text-center">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ResultadosPresidente)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge me-2" style="background-color: @item.Color; width: 12px; height: 12px; display:inline-block;"> </span>
+                                                <strong>@item.Siglas</strong> - @item.Lista
+                                            </td>
+                                            <td class="text-center fw-bold">@item.VotosTotales.ToString("N0")</td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center justify-content-center">
+                                                    <span class="me-2 text-muted small">@item.Porcentaje%</span>
+                                                    <div class="progress flex-grow-1" style="height: 6px; max-width: 100px;">
+                                                        <div class="progress-bar" role="progressbar" style="width: @item.Porcentaje%; background-color: @item.Color"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <canvas id="chartPres"></canvas>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="col-md-4">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-white fw-bold">Escaños (Webster)</div>
-                    <div class="card-body">
-                        <canvas id="doughnutChart"></canvas>
+        <!-- RESULTADOS ASAMBLEA -->
+        <div class="card shadow-sm mb-5 border-success">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">🏛️ Asambleístas (Webster)</h5>
+                <span class="badge bg-light text-success">Total Votos: @Model.TotalVotosAsambleistas.ToString("N0")</span>
+            </div>
+            <div class="card-body">
+                 <div class="row">
+                    <div class="col-md-12">
+                         <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Lista</th>
+                                        <th class="text-center">Votos</th>
+                                        <th class="text-center">%</th>
+                                        <th class="text-center">Escaños</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.ResultadosAsambleistas)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="badge me-2" style="background-color: @item.Color; width: 12px; height: 12px; display:inline-block;"> </span>
+                                                <strong>@item.Siglas</strong> - @item.Lista
+                                            </td>
+                                            <td class="text-center">@item.VotosTotales.ToString("N0")</td>
+                                            <td class="text-center">@item.Porcentaje%</td>
+                                            <td class="text-center">
+                                                @if(item.EscanosAsignados > 0) {
+                                                    <span class="badge bg-warning text-dark border border-dark">@item.EscanosAsignados</span>
+                                                } else {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                     <div class="col-md-6 offset-md-3">
+                        <h6 class="text-center text-muted mb-3">Distribución de Escaños</h6>
+                        <canvas id="chartAsam" style="max-height: 250px;"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">Detalle por Organización</h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover mb-0 align-middle">
-                        <thead class="bg-light">
-                            <tr>
-                                <th>Organización</th>
-                                <th class="text-center">Votos</th>
-                                <th class="text-center">%</th>
-                                <th class="text-center">Escaños</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.Resultados)
-                            {
-                                <tr>
-                                    <td>
-                                        <span class="badge me-2 rounded-circle" style="background-color: @item.Color; width: 12px; height: 12px; display:inline-block;"> </span>
-                                        <strong>@item.Siglas</strong> - @item.Lista
-                                    </td>
-                                    <td class="text-center">@item.VotosTotales.ToString("N0")</td>
-                                    <td class="text-center">
-                                        <div class="d-flex align-items-center justify-content-center">
-                                            <span class="me-2 text-muted" style="font-size: 0.85rem;">@item.Porcentaje%</span>
-                                            <div class="progress" style="width: 80px; height: 5px;">
-                                                <div class="progress-bar" role="progressbar" style="width: @item.Porcentaje%; background-color: @item.Color"></div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        @if (item.EscanosAsignados > 0)
-                                        {
-                                            <span class="badge bg-success">@item.EscanosAsignados</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
     </div>
 
     @section Scripts {
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-            var etiquetas = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Siglas)));
-            var votos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.VotosTotales)));
-            var escanos = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.EscanosAsignados)));
-            var colores = @Html.Raw(JsonConvert.SerializeObject(Model.Resultados.Select(x => x.Color)));
+            // Datos Presidente
+            var labelPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.Siglas)));
+            var dataPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.VotosTotales)));
+            var colorPres = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosPresidente.Select(x => x.Color)));
 
-            new Chart(document.getElementById('barChart'), {
-                type: 'bar',
+            new Chart(document.getElementById('chartPres'), {
+                type: 'doughnut',
                 data: {
-                    labels: etiquetas,
+                    labels: labelPres,
                     datasets: [{
-                        label: 'Votos',
-                        data: votos,
-                        backgroundColor: colores,
-                        borderColor: '#ddd',
+                        data: dataPres,
+                        backgroundColor: colorPres,
                         borderWidth: 1
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
             });
 
-            new Chart(document.getElementById('doughnutChart'), {
-                type: 'doughnut',
+            // Datos Asamblea (Escaños)
+            var labelAsam = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosAsambleistas.Select(x => x.Siglas)));
+            var dataAsam = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosAsambleistas.Select(x => x.EscanosAsignados)));
+            var colorAsam = @Html.Raw(JsonConvert.SerializeObject(Model.ResultadosAsambleistas.Select(x => x.Color)));
+
+            new Chart(document.getElementById('chartAsam'), {
+                type: 'bar',
                 data: {
-                    labels: etiquetas,
+                    labels: labelAsam,
                     datasets: [{
-                        data: escanos,
-                        backgroundColor: colores,
-                        hoverOffset: 4
+                        label: 'Escaños',
+                        data: dataAsam,
+                        backgroundColor: colorAsam,
+                        borderColor: '#333',
+                        borderWidth: 1
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                options: { 
+                    responsive: true, 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
             });
         </script>
     }

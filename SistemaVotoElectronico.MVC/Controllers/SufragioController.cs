@@ -31,7 +31,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(codigoEnlace))
             {
-                ViewBag.Error = "Debe ingresar el código que le entregó el Jefe de Mesa.";
+                ViewBag.Error = "Debe ingresar el codigo que le entrego el Jefe de Mesa.";
                 return View("Index");
             }
 
@@ -45,7 +45,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
                 if (eleccionActiva == null)
                 {
-                    ViewBag.Error = "No hay ninguna elección activa en este momento.";
+                    ViewBag.Error = "No hay ninguna eleccion activa en este momento.";
                     return View("Index");
                 }
 
@@ -72,54 +72,33 @@ namespace SistemaVotoElectronico.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EmitirVoto(int eleccionId, string codigoEnlace, string seleccion)
+        public async Task<IActionResult> EmitirVoto(int eleccionId, string codigoEnlace, string seleccionPresidente, string seleccionAsambleista)
         {
-            if (string.IsNullOrEmpty(seleccion))
+            // Validacion basica
+            if (string.IsNullOrEmpty(seleccionPresidente) || string.IsNullOrEmpty(seleccionAsambleista))
             {
-                ViewBag.Error = "Su voto no es válido. Debe seleccionar una opción o votar Nulo.";
+                ViewBag.Error = "Debe realizar una seleccion en ambas papeletas (o votar NULO).";
                 return View("ErrorVoto");
             }
 
-            int? idLista = null;
-            int? idCandidato = null;
+            int? idListaPresidente = null;
+            int? idListaAsambleista = null;
 
-            if (seleccion != "NULO")
+            // Procesar voto Presidente
+            if (seleccionPresidente != "NULO")
             {
-                try
+                if (int.TryParse(seleccionPresidente, out int idPres))
                 {
-                    string[] partes = seleccion.Split('-');
-                    if (partes.Length >= 2)
-                    {
-                        string tipoVoto = partes[0]; 
-                        int idSeleccionado = int.Parse(partes[1]);
-
-                        if (tipoVoto == "L")
-                        {
-                            idLista = idSeleccionado;
-
-                            var listaInfo = await Crud<ListaElectoral>.ReadByAsync($"{_apiBase}/ListaElectorales", "Id", idLista.ToString());
-
-                            if (listaInfo.Success && listaInfo.Data != null && listaInfo.Data.Candidatos != null)
-                            {
-                                var candidatoPrincipal = listaInfo.Data.Candidatos
-                                    .FirstOrDefault(c => c.OrdenEnLista == 1);
-
-                                if (candidatoPrincipal != null)
-                                {
-                                    idCandidato = candidatoPrincipal.Id;
-                                }
-                            }
-                        }
-                        else if (tipoVoto == "C")
-                        {
-                            idCandidato = idSeleccionado;
-                        }
-                    }
+                    idListaPresidente = idPres;
                 }
-                catch
+            }
+
+            // Procesar voto Asambleista
+            if (seleccionAsambleista != "NULO")
+            {
+                if (int.TryParse(seleccionAsambleista, out int idAsam))
                 {
-                    ViewBag.Error = "Error al procesar la selección del voto.";
-                    return View("ErrorVoto");
+                    idListaAsambleista = idAsam;
                 }
             }
 
@@ -129,8 +108,8 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 {
                     EleccionId = eleccionId,
                     CodigoEnlace = codigoEnlace,
-                    IdListaSeleccionada = idLista,       
-                    IdCandidatoSeleccionado = idCandidato 
+                    ListaPresidenteId = idListaPresidente,
+                    ListaAsambleistaId = idListaAsambleista
                 };
 
                 var json = JsonConvert.SerializeObject(votoRequest);
@@ -153,7 +132,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Error crítico de comunicación con el servidor: " + ex.Message;
+                ViewBag.Error = "Error critico de comunicacion con el servidor: " + ex.Message;
                 return View("ErrorVoto");
             }
         }

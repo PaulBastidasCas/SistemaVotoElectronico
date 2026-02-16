@@ -8,9 +8,9 @@ namespace SistemaVotoElectronico.Modelos.DTOs
 {
     public class DetalleListaDto
     {
-        public string Lista { get; set; }
-        public string Siglas { get; set; }
-        public string Color { get; set; }
+        public string Lista { get; set; } = string.Empty;
+        public string Siglas { get; set; } = string.Empty;
+        public string Color { get; set; } = "#000000";
         public int VotosTotales { get; set; }
         public double Porcentaje { get; set; }
         public int EscanosAsignados { get; set; }

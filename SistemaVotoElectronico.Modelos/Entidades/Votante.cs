@@ -1,7 +1,7 @@
 ﻿using SistemaVotoElectronico.Modelos.Entidades;
 using System.ComponentModel.DataAnnotations;
 
-namespace SistemaVotoElectronico.Modelos
+namespace SistemaVotoElectronico.Modelos.Entidades
 {
     public class Votante
     {

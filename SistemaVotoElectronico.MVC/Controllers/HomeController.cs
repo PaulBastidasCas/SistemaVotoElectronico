@@ -1,71 +1,57 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SistemaVotoElectronico.ApiConsumer;
-using SistemaVotoElectronico.Modelos;
-using SistemaVotoElectronico.Modelos.DTOs;
 using SistemaVotoElectronico.Modelos.Entidades;
 using SistemaVotoElectronico.MVC.Models;
 using System.Diagnostics;
-using System.Dynamic;
 using System.Security.Claims;
 
 namespace SistemaVotoElectronico.MVC.Controllers
 {
-    [Authorize]
     public class HomeController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
+        private readonly IConfiguration _configuration;
         private readonly string _apiBaseUrl;
 
-        public HomeController(IConfiguration configuration)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
-            _apiBaseUrl = configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
+            _logger = logger;
+            _configuration = configuration;
+            _apiBaseUrl = _configuration["ApiBaseUrl"] ?? "http://localhost:5051/api";
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var eleccionesRes = await Crud<Eleccion>.ReadAllAsync($"{_apiBaseUrl}/Elecciones");
-            var eleccionActiva = eleccionesRes.Data?.FirstOrDefault(e => e.Activa);
-
-            if (eleccionActiva != null)
-            {
-                var resultadosRes = await Crud<ResultadoEleccionDto>.ReadByAsync(
-                    $"{_apiBaseUrl}/Votos/resultados",
-                    "Id",
-                    eleccionActiva.Id.ToString()
-                );
-
-                if (resultadosRes.Success && resultadosRes.Data != null)
-                {
-                    return View(resultadosRes.Data);
-                }
-            }
-
-            return View((ResultadoEleccionDto)null);
+            return View();
         }
 
         public async Task<IActionResult> Perfil()
         {
+            var model = new PerfilViewModel
+            {
+                Nombre = "Cargando...",
+                Foto = null,
+                Items = new List<dynamic>()
+            };
+
             var rol = User.FindFirst(ClaimTypes.Role)?.Value;
             var correo = User.FindFirst(ClaimTypes.Email)?.Value;
 
-            dynamic model = new ExpandoObject();
+            if (string.IsNullOrEmpty(rol) || string.IsNullOrEmpty(correo))
+            {
+                return RedirectToAction("Index");
+            }
 
-            model.Rol = rol ?? "Desconocido";
-            model.Correo = correo ?? "Sin Correo";
-            model.Nombre = "Cargando...";
-            model.Foto = "";
-            model.Items = new List<dynamic>();
-            model.ListaId = 0;
-            model.Stat1Label = "Dato 1"; model.Stat1Value = "-";
-            model.Stat2Label = "Dato 2"; model.Stat2Value = "-";
+            model.Rol = rol;
+            model.Correo = correo;
 
             bool datosEncontrados = false;
 
             try
             {
-                if (rol == "Administrador")
+                if (User.IsInRole("Administrador"))
                 {
-                    model.Stat1Label = "ID Admin"; model.Stat2Label = "Sistema"; model.Stat2Value = "Online";
+                    model.Stat1Label = "Nivel"; model.Stat2Label = "Permisos"; model.Stat2Value = "Total";
                     var respuesta = await Crud<Administrador>.ReadAllAsync($"{_apiBaseUrl}/Administradores");
                     if (respuesta.Success)
                     {
@@ -73,33 +59,15 @@ namespace SistemaVotoElectronico.MVC.Controllers
                         if (user != null)
                         {
                             model.Nombre = user.NombreCompleto;
+                            model.Stat1Value = "SuperAdmin";
                             model.Foto = user.Fotografia;
-                            model.Stat1Value = user.Id.ToString();
                             datosEncontrados = true;
                         }
                     }
                 }
-                else if (rol == "Candidato")
+                else if (User.IsInRole("JefeDeMesa")) 
                 {
-                    model.Stat1Label = "Orden"; model.Stat2Label = "ID";
-                    var respuesta = await Crud<Candidato>.ReadAllAsync($"{_apiBaseUrl}/Candidatos");
-                    if (respuesta.Success)
-                    {
-                        var user = respuesta.Data.FirstOrDefault(x => x.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase));
-                        if (user != null)
-                        {
-                            model.Nombre = user.NombreCompleto;
-                            model.Foto = user.Fotografia;
-                            model.Stat1Value = user.OrdenEnLista.ToString();
-                            model.Stat2Value = user.Id.ToString();
-                            model.ListaId = user.ListaElectoralId ?? 0;
-                            datosEncontrados = true;
-                        }
-                    }
-                }
-                else if (rol == "JefeDeMesa")
-                {
-                    model.Stat1Label = "Mesa"; model.Stat2Label = "Zona"; model.Stat2Value = "Norte";
+                    model.Stat1Label = "Mesa"; model.Stat2Label = "Recinto"; model.Stat2Value = "Principal";
                     var respuesta = await Crud<JefeDeMesa>.ReadAllAsync($"{_apiBaseUrl}/JefesDeMesa");
                     if (respuesta.Success)
                     {
@@ -115,7 +83,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                 }
                 else // Votante
                 {
-                    model.Stat1Label = "Cédula"; model.Stat2Label = "Estado"; model.Stat2Value = "Habilitado";
+                    model.Stat1Label = "Cedula"; model.Stat2Label = "Estado"; model.Stat2Value = "Habilitado";
                     var respuesta = await Crud<Votante>.ReadAllAsync($"{_apiBaseUrl}/Votantes");
                     if (respuesta.Success)
                     {
@@ -133,7 +101,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
                                 var misAsignaciones = padronRes.Data.Where(p => p.VotanteId == user.Id).ToList();
                                 foreach (var asignacion in misAsignaciones)
                                 {
-                                    string nombre = asignacion.Eleccion != null ? asignacion.Eleccion.Nombre : $"Elección #{asignacion.EleccionId}";
+                                    string nombre = asignacion.Eleccion != null ? asignacion.Eleccion.Nombre : $"Eleccion #{asignacion.EleccionId}";
                                     model.Items.Add(new { Titulo = nombre, HaVotado = asignacion.CodigoCanjeado });
                                 }
                             }
@@ -146,7 +114,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
             }
             catch (Exception ex)
             {
-                model.Nombre = "Error de Conexión";
+                model.Nombre = "Error de Conexion";
                 model.Stat1Value = ex.Message;
             }
 
@@ -179,7 +147,7 @@ namespace SistemaVotoElectronico.MVC.Controllers
 
                 if (string.IsNullOrEmpty(rol) || string.IsNullOrEmpty(correo))
                 {
-                    TempData["Mensaje"] = "Sesión no válida.";
+                    TempData["Mensaje"] = "Sesion no valida.";
                     return RedirectToAction("Index");
                 }
 
@@ -223,23 +191,11 @@ namespace SistemaVotoElectronico.MVC.Controllers
                             exito = update.Success; errorApi = update.Message;
                         }
                         break;
-
-                    case "Candidato":
-                        var resC = await Crud<Candidato>.ReadAllAsync($"{_apiBaseUrl}/Candidatos");
-                        var candidato = resC.Data?.FirstOrDefault(x => x.Correo.Equals(correo, StringComparison.OrdinalIgnoreCase));
-                        if (candidato != null)
-                        {
-                            candidato.Fotografia = base64Foto;
-                            candidato.Contrasena = null;
-                            var update = await Crud<Candidato>.UpdateAsync($"{_apiBaseUrl}/Candidatos", candidato.Id.ToString(), candidato);
-                            exito = update.Success; errorApi = update.Message;
-                        }
-                        break;
                 }
 
                 if (exito)
                 {
-                    TempData["Mensaje"] = "¡Foto actualizada correctamente!";
+                    TempData["Mensaje"] = "Foto actualizada correctamente!";
                     TempData["Tipo"] = "success";
                 }
                 else

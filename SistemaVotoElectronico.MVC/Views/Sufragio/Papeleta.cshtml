@@ -1,100 +1,148 @@
 ﻿@model SistemaVotoElectronico.MVC.Models.PapeletaViewModel
 
 @{
-    ViewData["Title"] = "Papeleta Electoral";
-    bool esPlancha = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Plancha", StringComparison.OrdinalIgnoreCase);
-    bool esNominal = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Nominal", StringComparison.OrdinalIgnoreCase);
+    ViewData["Title"] = "Papeleta Electoral Unificada";
 }
 
 <div class="container pb-5">
     <div class="text-center mb-4">
         <h2 class="display-4">@Model.Eleccion.Nombre</h2>
-        <p class="text-muted">Modalidad: <strong>@(Model.Eleccion.TipoEleccion ?? "Estándar")</strong></p>
-        <p class="lead">Seleccione su preferencia. Solo puede elegir una opción.</p>
+        <p class="lead">Usted debe emitir <strong>DOS VOTOS</strong>: Uno para Presidente/Vicepresidente y otro para Asambleistas.</p>
     </div>
 
-    <form asp-action="EmitirVoto" method="post">
+    <form asp-action="EmitirVoto" method="post" id="formVotacion">
         <input type="hidden" name="eleccionId" value="@Model.Eleccion.Id" />
         <input type="hidden" name="codigoEnlace" value="@Model.CodigoEnlace" />
 
-        @if (Model.Listas != null && Model.Listas.Any())
-        {
-            <div class="row">
-                @foreach (var lista in Model.Listas)
+        <!-- SECCION 1: PRESIDENTE Y VICEPRESIDENTE -->
+        <div class="card mb-5 border-primary">
+            <div class="card-header bg-primary text-white text-center">
+                <h3 class="mb-0">1. VOTO PRESIDENCIAL (Binomio)</h3>
+                <small>Seleccione UNA sola opcion</small>
+            </div>
+            <div class="card-body bg-light">
+                @if (Model.Listas != null && Model.Listas.Any())
                 {
-                    <div class="col-md-6 mb-4">
-                        <div class="card h-100 border-primary shadow-sm">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 class="mb-0 text-primary">Lista @lista.NumeroLista - @lista.Siglas</h4>
-                                    <small>@lista.Nombre</small>
-                                </div>
-                                @if (esPlancha)
-                                {
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="seleccion"
-                                               id="L-@lista.Id" value="L-@lista.Id" style="transform: scale(1.5);">
-                                        <label class="form-check-label font-weight-bold ml-2" for="L-@lista.Id">
-                                            VOTO LISTA
-                                        </label>
-                                    </div>
-                                }
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-group list-group-flush">
-                                    @if (lista.Candidatos != null)
-                                    {
-                                        var candidatosMostrar = lista.Candidatos.OrderBy(c => c.OrdenEnLista).AsEnumerable();
-                                        if (esNominal)
-                                        {
-                                            candidatosMostrar = candidatosMostrar.Where(c => c.OrdenEnLista == 1);
-                                        }
-
-                                        @foreach (var candidato in candidatosMostrar)
-                                        {
-                                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                                <div class="d-flex align-items-center">
-                                                    @if (!string.IsNullOrEmpty(candidato.Fotografia))
-                                                    {
-                                                        <img src="@candidato.Fotografia" class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
-                                                    }
-                                                    <div>
-                                                        <strong>@candidato.NombreCompleto</strong>
-                                                        <br><small class="text-muted">Orden: @candidato.OrdenEnLista</small>
-                                                    </div>
-                                                </div>
-                                                @if (esNominal)
+                    <div class="row">
+                        @foreach (var lista in Model.Listas)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100 shadow-sm opcion-presidente" onclick="seleccionar('pres', '@lista.Id')">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title text-primary">Lista @lista.NumeroLista - @lista.Siglas</h5>
+                                        <h6 class="text-muted">@lista.Nombre</h6>
+                                        <hr />
+                                        <div class="row align-items-center">
+                                            <div class="col-6">
+                                                @if (lista.Presidente != null)
                                                 {
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="seleccion"
-                                                               id="C-@candidato.Id" value="C-@candidato.Id">
-                                                        <label class="form-check-label small" for="C-@candidato.Id">Seleccionar</label>
+                                                    <div class="mb-2">
+                                                        @if(!string.IsNullOrEmpty(lista.Presidente.Fotografia)){
+                                                            <img src="@lista.Presidente.Fotografia" class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                        }
+                                                        <br/><strong>PRES:</strong> @lista.Presidente.NombreCompleto
                                                     </div>
                                                 }
-                                            </li>
-                                        }
-                                    }
-                                </ul>
+                                            </div>
+                                            <div class="col-6 border-start">
+                                                @if (lista.Vicepresidente != null)
+                                                {
+                                                    <div class="mb-2">
+                                                         @if(!string.IsNullOrEmpty(lista.Vicepresidente.Fotografia)){
+                                                            <img src="@lista.Vicepresidente.Fotografia" class="rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;">
+                                                         }
+                                                        <br/><strong>VICE:</strong> @lista.Vicepresidente.NombreCompleto
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <input class="form-check-input" type="radio" name="seleccionPresidente" 
+                                                   id="P-@lista.Id" value="@lista.Id" style="transform: scale(1.5);">
+                                            <label class="form-check-label font-weight-bold ml-2 ms-2" for="P-@lista.Id">
+                                                VOTAR POR ESTE BINOMIO
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                
+                <div class="row justify-content-center mt-3">
+                     <div class="col-md-6">
+                        <div class="card border-secondary">
+                            <div class="card-body text-center" onclick="seleccionar('pres', 'NULO')">
+                                <input class="form-check-input" type="radio" name="seleccionPresidente" id="presNulo" value="NULO" style="transform: scale(1.5);">
+                                <label class="form-check-label font-weight-bold ms-2 text-danger" for="presNulo">
+                                    ANULAR VOTO PRESIDENCIAL
+                                </label>
                             </div>
                         </div>
                     </div>
-                }
+                </div>
             </div>
-        }
-        else
-        {
-            <div class="alert alert-warning text-center">No hay listas registradas.</div>
-        }
+        </div>
 
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-6">
-                <div class="card border-secondary bg-light">
-                    <div class="card-body text-center d-flex align-items-center justify-content-center">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="seleccion" id="votoNulo" value="NULO" style="transform: scale(1.5);">
-                            <label class="form-check-label font-weight-bold ml-2 text-secondary h5 mb-0" for="votoNulo">
-                                🚫 ANULAR VOTO (VOTO NULO)
-                            </label>
+        <!-- SECCION 2: ASAMBLEISTAS -->
+        <div class="card mb-5 border-success">
+            <div class="card-header bg-success text-white text-center">
+                <h3 class="mb-0">2. VOTO ASAMBLEISTAS (Lista)</h3>
+                <small>Seleccione UNA sola lista</small>
+            </div>
+            <div class="card-body bg-light">
+                @if (Model.Listas != null && Model.Listas.Any())
+                {
+                    <div class="row">
+                        @foreach (var lista in Model.Listas)
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm opcion-asambleista" onclick="seleccionar('asam', '@lista.Id')">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">Lista @lista.NumeroLista - @lista.Siglas</h5>
+                                        <small class="text-muted">@lista.Nombre</small>
+                                        
+                                        <ul class="list-group list-group-flush mt-2 small">
+                                            @if (lista.Asambleistas != null)
+                                            {
+                                                foreach (var asam in lista.Asambleistas.OrderBy(a => a.Orden).Take(3))
+                                                {
+                                                    <li class="list-group-item px-0 py-1 bg-transparent">
+                                                        <span class="badge bg-secondary rounded-pill">@asam.Orden</span> @asam.NombreCompleto
+                                                    </li>
+                                                }
+                                                if (lista.Asambleistas.Count > 3)
+                                                {
+                                                    <li class="list-group-item px-0 py-1 bg-transparent text-muted">... y @(lista.Asambleistas.Count - 3) mas</li>
+                                                }
+                                            }
+                                        </ul>
+
+                                        <div class="mt-3 text-center">
+                                            <input class="form-check-input" type="radio" name="seleccionAsambleista" 
+                                                   id="A-@lista.Id" value="@lista.Id" style="transform: scale(1.5);">
+                                            <label class="form-check-label font-weight-bold ms-2" for="A-@lista.Id">
+                                                VOTAR LISTA
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <div class="row justify-content-center mt-3">
+                     <div class="col-md-6">
+                        <div class="card border-secondary">
+                            <div class="card-body text-center" onclick="seleccionar('asam', 'NULO')">
+                                <input class="form-check-input" type="radio" name="seleccionAsambleista" id="asamNulo" value="NULO" style="transform: scale(1.5);">
+                                <label class="form-check-label font-weight-bold ms-2 text-danger" for="asamNulo">
+                                    ANULAR VOTO ASAMBLEISTAS
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,10 +151,22 @@
 
         <div class="fixed-bottom bg-white p-3 shadow-lg border-top">
             <div class="container">
-                <button type="submit" class="btn btn-success btn-lg btn-block w-100" onclick="return confirm('¿Está seguro de emitir su voto? Esta acción no se puede deshacer.');">
+                <button type="submit" class="btn btn-dark btn-lg btn-block w-100" onclick="return confirm('¿Está seguro de emitir sus votos? Verifique que haya marcado una opcion en ambas secciones.');">
                     ✅ CONFIRMAR Y EMITIR VOTO
                 </button>
             </div>
         </div>
     </form>
 </div>
+
+<script>
+    function seleccionar(tipo, id) {
+        if (tipo === 'pres') {
+            if (id === 'NULO') document.getElementById('presNulo').checked = true;
+            else document.getElementById('P-' + id).checked = true;
+        } else {
+            if (id === 'NULO') document.getElementById('asamNulo').checked = true;
+            else document.getElementById('A-' + id).checked = true;
+        }
+    }
+</script>

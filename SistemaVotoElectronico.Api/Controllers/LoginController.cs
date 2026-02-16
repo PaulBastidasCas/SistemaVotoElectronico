@@ -48,18 +48,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
-                // 3. Verificar Candidato
-                var candidato = await _context.Candidatos.FirstOrDefaultAsync(x => x.Correo == login.Correo);
-                if (candidato != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, candidato.Contrasena))
-                {
-                    return ApiResult<LoginResponseDto>.Ok(new LoginResponseDto
-                    {
-                        Id = candidato.Id,
-                        Nombre = candidato.NombreCompleto,
-                        Correo = candidato.Correo,
-                        Rol = "Candidato"
-                    });
-                }
+
 
                 // 4. Verificar Votante
                 var votante = await _context.Votantes.FirstOrDefaultAsync(x => x.Correo == login.Correo);

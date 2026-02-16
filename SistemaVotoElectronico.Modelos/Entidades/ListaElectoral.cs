@@ -17,6 +17,8 @@ namespace SistemaVotoElectronico.Modelos.Entidades
         [ForeignKey("EleccionId")]
         public Eleccion? Eleccion { get; set; }
 
-        public List<Candidato>? Candidatos { get; set; } = new List<Candidato>();
+        public Presidente? Presidente { get; set; }
+        public Vicepresidente? Vicepresidente { get; set; }
+        public List<Asambleista>? Asambleistas { get; set; } = new List<Asambleista>();
     }
 }

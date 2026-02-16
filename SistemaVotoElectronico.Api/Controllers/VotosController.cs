@@ -1,8 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
+using SistemaVotoElectronico.Api.Data;
+using SistemaVotoElectronico.Modelos;
 using SistemaVotoElectronico.Modelos.DTOs;
 using SistemaVotoElectronico.Modelos.Entidades;
 using SistemaVotoElectronico.Modelos.Responses;
+
+// For creating PDF
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Layout.Properties;
+using iText.IO.Font.Constants;
+using iText.Kernel.Font;
+using iText.Kernel.Colors;
+using System.Net.Mail;
+using System.Net;
+using iText.Kernel.Geom;
 
 namespace SistemaVotoElectronico.Api.Controllers
 {
@@ -20,8 +35,6 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost("emitir")]
         public async Task<ActionResult<ApiResult<string>>> EmitirVoto([FromBody] VotoRequest request)
         {
-            Console.WriteLine($"[INICIO] Intentando emitir voto para código: {request.CodigoEnlace}"); 
-
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -32,39 +45,41 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 if (registroPadron == null)
                 {
-                    Console.WriteLine("[ERROR] Código no encontrado en BD"); 
-                    return ApiResult<string>.Fail("Código inválido.");
+                    Log.Error("[ERROR] Codigo no encontrado en BD"); 
+                    return ApiResult<string>.Fail("Codigo invalido.");
                 }
 
                 if (registroPadron.CodigoCanjeado)
                 {
-                    Console.WriteLine("[ERROR] Código ya fue canjeado"); 
-                    return ApiResult<string>.Fail("Código ya usado.");
+                    Log.Error("[ERROR] Codigo ya fue canjeado"); 
+                    return ApiResult<string>.Fail("Codigo ya usado.");
                 }
 
                 var nuevoVoto = new Voto
                 {
                     Id = Guid.NewGuid(),
                     EleccionId = request.EleccionId,
-                    IdListaSeleccionada = request.IdListaSeleccionada,
-                    IdCandidatoSeleccionado = request.IdCandidatoSeleccionado,
+                    ListaPresidenteId = request.ListaPresidenteId,
+                    ListaAsambleistaId = request.ListaAsambleistaId,
                     FechaRegistro = DateTime.Now
                 };
 
                 _context.Votos.Add(nuevoVoto);
                 registroPadron.CodigoCanjeado = true;
                 registroPadron.FechaVoto = DateTime.Now;
-                registroPadron.VotoPlanchaRealizado = (request.IdListaSeleccionada != null);
-                registroPadron.VotoNominalRealizado = (request.IdCandidatoSeleccionado != null);
+                
+                // Actualizamos indicadores (informativo)
+                registroPadron.VotoPlanchaRealizado = (request.ListaPresidenteId == request.ListaAsambleistaId && request.ListaPresidenteId != null);
+                registroPadron.VotoNominalRealizado = (request.ListaPresidenteId != request.ListaAsambleistaId);
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                Console.WriteLine("[EXITO] Voto guardado en BD. Preparando correo..."); 
+                Log.Information("[EXITO] Voto guardado en BD. Preparando correo..."); 
 
                 if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
                 {
-                    Console.WriteLine($"[INFO] Enviando correo a: {registroPadron.Votante.Correo}"); 
+                    Log.Information($"[INFO] Enviando correo a: {registroPadron.Votante.Correo}"); 
 
                     var datos = new
                     {
@@ -78,20 +93,20 @@ namespace SistemaVotoElectronico.Api.Controllers
                     {
                         try
                         {
-                            Console.WriteLine("[ASYNC] Iniciando envío SMTP...");
+                            Log.Information("[ASYNC] Iniciando envio SMTP...");
                             await EnviarCertificadoPDF(datos.Nombre, datos.Correo, datos.Eleccion, datos.Fecha);
-                            Console.WriteLine("[ASYNC] ¡Correo enviado con éxito!"); 
+                            Log.Information("[ASYNC] Correo enviado con exito!"); 
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"[ASYNC ERROR] Falló el envío: {ex.Message}");
-                            if (ex.InnerException != null) Console.WriteLine($"[INNER EX] {ex.InnerException.Message}");
+                            Log.Error($"[ASYNC ERROR] Fallo el envio: {ex.Message}");
+                            if (ex.InnerException != null) Log.Error($"[INNER EX] {ex.InnerException.Message}");
                         }
                     });
                 }
                 else
                 {
-                    Console.WriteLine("[AVISO] El votante no tiene correo o es nulo. No se envía nada.");
+                    Log.Information("[AVISO] El votante no tiene correo o es nulo. No se envia nada.");
                 }
 
                 return ApiResult<string>.Ok("Voto registrado.");
@@ -99,7 +114,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"[CRITICAL] Excepción en transacción: {ex.Message}");
+                Log.Error($"[CRITICAL] Excepcion en transaccion: {ex.Message}");
                 return ApiResult<string>.Fail("Error interno.");
             }
         }
@@ -115,14 +130,14 @@ namespace SistemaVotoElectronico.Api.Controllers
                 PdfFont fuenteNegrita = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 PdfFont fuenteNormal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-                document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN DIGITAL")
+                document.Add(new Paragraph("CERTIFICADO DE VOTACION DIGITAL")
                     .SetFont(fuenteNegrita)
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetFontSize(20));
 
                 document.Add(new Paragraph("\n\n"));
 
-                document.Add(new Paragraph("El Sistema de Voto Electrónico certifica que el ciudadano/a:")
+                document.Add(new Paragraph("El Sistema de Voto Electronico certifica que el ciudadano/a:")
                     .SetFont(fuenteNormal));
 
                 document.Add(new Paragraph()
@@ -143,7 +158,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 document.Add(new Paragraph($"\nFecha y Hora de registro: {fecha:dd/MM/yyyy HH:mm:ss}")
                     .SetFont(fuenteNormal));
 
-                document.Add(new Paragraph($"Identificador de Transacción: {Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}")
+                document.Add(new Paragraph($"Identificador de Transaccion: {Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}")
                     .SetFont(fuenteNormal)
                     .SetFontSize(10));
 
@@ -167,9 +182,9 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 var mailMessage = new MailMessage
                 {
-                    From = new MailAddress(miCorreo, "Sistema Voto Electrónico"),
-                    Subject = "Constancia de Votación",
-                    Body = $"Estimado/a {nombreVotante},<br/><br/>Su voto ha sido procesado correctamente.<br/>Adjunto encontrará su certificado digital de votación.<br/><br/>Atentamente,<br/>Consejo Electoral.",
+                    From = new MailAddress(miCorreo, "Sistema Voto Electronico"),
+                    Subject = "Constancia de Votacion",
+                    Body = $"Estimado/a {nombreVotante},<br/><br/>Su voto ha sido procesado correctamente.<br/>Adjunto encontrara su certificado digital de votacion.<br/><br/>Atentamente,<br/>Consejo Electoral.",
                     IsBodyHtml = true,
                 };
 
@@ -186,7 +201,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             try
             {
                 var eleccion = await _context.Elecciones.FindAsync(eleccionId);
-                if (eleccion == null) return ApiResult<ResultadoEleccionDto>.Fail("Elección no encontrada");
+                if (eleccion == null) return ApiResult<ResultadoEleccionDto>.Fail("Eleccion no encontrada");
 
                 var votos = await _context.Votos
                     .AsNoTracking()
@@ -195,25 +210,43 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 var listas = await _context.ListaElectorales
                     .AsNoTracking()
-                    .Include(l => l.Candidatos)
                     .Where(l => l.EleccionId == eleccionId)
                     .ToListAsync();
 
-                var resultadosListas = new List<DetalleListaDto>();
-                int totalVotosValidos = 0;
+                // 1. RESULTADOS PRESIDENTE/VICEPRESIDENTE
+                var resultadosPresidente = new List<DetalleListaDto>();
+                int totalVotosPresidente = 0;
 
                 foreach (var lista in listas)
                 {
-                    var idsCandidatos = lista.Candidatos.Select(c => c.Id).ToList();
+                    int totalLista = votos.Count(v => v.ListaPresidenteId == lista.Id);
+                    totalVotosPresidente += totalLista;
 
-                    int totalLista = votos.Count(v =>
-                        v.IdListaSeleccionada == lista.Id ||
-                        (v.IdCandidatoSeleccionado.HasValue && idsCandidatos.Contains(v.IdCandidatoSeleccionado.Value))
-                    );
+                    resultadosPresidente.Add(new DetalleListaDto
+                    {
+                        Lista = lista.Nombre,
+                        Siglas = lista.Siglas,
+                        Color = !string.IsNullOrEmpty(lista.Color) ? lista.Color : "#6c757d",
+                        VotosTotales = totalLista,
+                        EscanosAsignados = 0 
+                    });
+                }
 
-                    totalVotosValidos += totalLista;
+                if (totalVotosPresidente > 0)
+                {
+                    resultadosPresidente.ForEach(r => r.Porcentaje = Math.Round(((double)r.VotosTotales / totalVotosPresidente) * 100, 2));
+                }
 
-                    resultadosListas.Add(new DetalleListaDto
+                // 2. RESULTADOS ASAMBLEISTAS (WEBSTER)
+                var resultadosAsambleistas = new List<DetalleListaDto>();
+                int totalVotosAsambleistas = 0;
+
+                foreach (var lista in listas)
+                {
+                    int totalLista = votos.Count(v => v.ListaAsambleistaId == lista.Id);
+                    totalVotosAsambleistas += totalLista;
+
+                    resultadosAsambleistas.Add(new DetalleListaDto
                     {
                         Lista = lista.Nombre,
                         Siglas = lista.Siglas,
@@ -223,13 +256,14 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
-                if (totalVotosValidos > 0)
+                if (totalVotosAsambleistas > 0)
                 {
-                    resultadosListas.ForEach(r => r.Porcentaje = Math.Round(((double)r.VotosTotales / totalVotosValidos) * 100, 2));
+                    resultadosAsambleistas.ForEach(r => r.Porcentaje = Math.Round(((double)r.VotosTotales / totalVotosAsambleistas) * 100, 2));
                 }
 
+                // Reparticion Webster Solo para Asambleistas
                 var cocientes = new List<dynamic>();
-                foreach (var item in resultadosListas)
+                foreach (var item in resultadosAsambleistas)
                 {
                     for (int i = 1; i <= escanosA_Repartir * 2; i += 2)
                     {
@@ -247,10 +281,12 @@ namespace SistemaVotoElectronico.Api.Controllers
                 var reporte = new ResultadoEleccionDto
                 {
                     Eleccion = eleccion.Nombre,
-                    TotalVotos = totalVotosValidos,
+                    TotalVotosPresidente = totalVotosPresidente,
+                    TotalVotosAsambleistas = totalVotosAsambleistas,
                     TotalEscanos = escanosA_Repartir,
                     FechaCorte = DateTime.Now,
-                    Resultados = resultadosListas.OrderByDescending(r => r.VotosTotales).ToList()
+                    ResultadosPresidente = resultadosPresidente.OrderByDescending(r => r.VotosTotales).ToList(),
+                    ResultadosAsambleistas = resultadosAsambleistas.OrderByDescending(r => r.VotosTotales).ToList()
                 };
 
                 return ApiResult<ResultadoEleccionDto>.Ok(reporte);
@@ -266,7 +302,6 @@ namespace SistemaVotoElectronico.Api.Controllers
         public async Task<IActionResult> GetReportePdf(int eleccionId)
         {
             var actionResult = await GetResultados(eleccionId);
-
             ApiResult<ResultadoEleccionDto> apiResult = actionResult.Value;
 
             if (apiResult == null && actionResult.Result is ObjectResult objResult)
@@ -277,7 +312,6 @@ namespace SistemaVotoElectronico.Api.Controllers
             if (apiResult != null && apiResult.Success && apiResult.Data != null)
             {
                 var data = apiResult.Data;
-
                 try
                 {
                     using (MemoryStream stream = new MemoryStream())
@@ -289,53 +323,24 @@ namespace SistemaVotoElectronico.Api.Controllers
                         PdfFont bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                         PdfFont normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
-                        document.Add(new Paragraph("REPORTE DE RESULTADOS OFICIALES")
+                        document.Add(new Paragraph("REPORTE DE RESULTADOS")
                             .SetFont(bold).SetFontSize(18).SetTextAlignment(TextAlignment.CENTER));
-
                         document.Add(new Paragraph(data.Eleccion)
                             .SetFont(bold).SetFontSize(14).SetTextAlignment(TextAlignment.CENTER));
-
-                        document.Add(new Paragraph($"Fecha de Corte: {data.FechaCorte}")
+                        document.Add(new Paragraph($"Corte: {data.FechaCorte}")
                             .SetFontSize(10).SetTextAlignment(TextAlignment.CENTER));
+                        
+                        // TABLA 1: PRESIDENTES
+                        document.Add(new Paragraph("\nRESULTADOS PRESIDENCIALES").SetFont(bold));
+                        document.Add(CrearTablaResultados(data.ResultadosPresidente, bold, normal));
+                        document.Add(new Paragraph($"Total Votos Vlidos: {data.TotalVotosPresidente.ToString("N0")}").SetFont(bold));
 
-                        document.Add(new Paragraph("\n"));
-
-                        Table table = new Table(UnitValue.CreatePercentArray(new float[] { 4, 2, 2, 2, 2 })).UseAllAvailableWidth();
-
-                        table.AddHeaderCell(new Cell().Add(new Paragraph("Organización Política").SetFont(bold).SetFontColor(ColorConstants.WHITE)))
-                             .SetBackgroundColor(ColorConstants.DARK_GRAY);
-                        table.AddHeaderCell(new Cell().Add(new Paragraph("Siglas").SetFont(bold).SetFontColor(ColorConstants.WHITE)))
-                             .SetBackgroundColor(ColorConstants.DARK_GRAY);
-                        table.AddHeaderCell(new Cell().Add(new Paragraph("Votos").SetFont(bold).SetFontColor(ColorConstants.WHITE)).SetTextAlignment(TextAlignment.CENTER))
-                             .SetBackgroundColor(ColorConstants.DARK_GRAY);
-                        table.AddHeaderCell(new Cell().Add(new Paragraph("%").SetFont(bold).SetFontColor(ColorConstants.WHITE)).SetTextAlignment(TextAlignment.CENTER))
-                             .SetBackgroundColor(ColorConstants.DARK_GRAY);
-                        table.AddHeaderCell(new Cell().Add(new Paragraph("Escaños").SetFont(bold).SetFontColor(ColorConstants.WHITE)).SetTextAlignment(TextAlignment.CENTER))
-                             .SetBackgroundColor(ColorConstants.DARK_GRAY);
-
-                        foreach (var item in data.Resultados)
-                        {
-                            table.AddCell(new Paragraph(item.Lista).SetFont(normal));
-                            table.AddCell(new Paragraph(item.Siglas).SetFont(normal));
-                            table.AddCell(new Paragraph(item.VotosTotales.ToString("N0")).SetFont(normal).SetTextAlignment(TextAlignment.CENTER));
-                            table.AddCell(new Paragraph(item.Porcentaje + "%").SetFont(normal).SetTextAlignment(TextAlignment.CENTER));
-
-                            var celdaEscanos = new Cell().Add(new Paragraph(item.EscanosAsignados.ToString()).SetFont(bold).SetTextAlignment(TextAlignment.CENTER));
-                            if (item.EscanosAsignados > 0) celdaEscanos.SetBackgroundColor(ColorConstants.LIGHT_GRAY);
-
-                            table.AddCell(celdaEscanos);
-                        }
-
-                        document.Add(table);
-
-                        document.Add(new Paragraph("\n"));
-                        document.Add(new Paragraph($"Total Votos Válidos: {data.TotalVotos.ToString("N0")}")
-                            .SetFont(bold));
-                        document.Add(new Paragraph($"Escaños Repartidos: {data.TotalEscanos} (Método Webster)")
-                            .SetFont(normal).SetFontSize(10));
+                        // TABLA 2: ASAMBLEISTAS
+                        document.Add(new Paragraph("\n\nRESULTADOS ASAMBLEISTAS").SetFont(bold));
+                        document.Add(CrearTablaResultados(data.ResultadosAsambleistas, bold, normal));
+                        document.Add(new Paragraph($"Total Votos Vlidos: {data.TotalVotosAsambleistas.ToString("N0")}").SetFont(bold));
 
                         document.Close();
-
                         return File(stream.ToArray(), "application/pdf", $"Resultados_{eleccionId}.pdf");
                     }
                 }
@@ -344,10 +349,33 @@ namespace SistemaVotoElectronico.Api.Controllers
                     return BadRequest($"Error interno creando PDF: {ex.Message}");
                 }
             }
-
-            return BadRequest($"No se pudieron obtener los datos. Mensaje: {apiResult?.Message ?? "Datos nulos"}");
+            return BadRequest($"No se pudieron obtener los datos.");
         }
 
+        private Table CrearTablaResultados(List<DetalleListaDto> resultados, PdfFont bold, PdfFont normal)
+        {
+            Table table = new Table(UnitValue.CreatePercentArray(new float[] { 4, 2, 2, 2, 2 })).UseAllAvailableWidth();
+
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Organizacin").SetFont(bold).SetFontColor(ColorConstants.WHITE))).SetBackgroundColor(ColorConstants.DARK_GRAY);
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Siglas").SetFont(bold).SetFontColor(ColorConstants.WHITE))).SetBackgroundColor(ColorConstants.DARK_GRAY);
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Votos").SetFont(bold).SetFontColor(ColorConstants.WHITE))).SetBackgroundColor(ColorConstants.DARK_GRAY);
+            table.AddHeaderCell(new Cell().Add(new Paragraph("%").SetFont(bold).SetFontColor(ColorConstants.WHITE))).SetBackgroundColor(ColorConstants.DARK_GRAY);
+            table.AddHeaderCell(new Cell().Add(new Paragraph("Escaos").SetFont(bold).SetFontColor(ColorConstants.WHITE))).SetBackgroundColor(ColorConstants.DARK_GRAY);
+
+            foreach (var item in resultados)
+            {
+                table.AddCell(new Paragraph(item.Lista).SetFont(normal));
+                table.AddCell(new Paragraph(item.Siglas).SetFont(normal));
+                table.AddCell(new Paragraph(item.VotosTotales.ToString("N0")).SetFont(normal));
+                table.AddCell(new Paragraph(item.Porcentaje + "%").SetFont(normal));
+                
+                var celdaEscanos = new Cell().Add(new Paragraph(item.EscanosAsignados.ToString()).SetFont(bold));
+                if (item.EscanosAsignados > 0) celdaEscanos.SetBackgroundColor(ColorConstants.LIGHT_GRAY);
+                table.AddCell(celdaEscanos);
+            }
+            return table;
+        }
+        
         // GET: api/Votos
         [HttpGet]
         public async Task<ActionResult<ApiResult<List<Voto>>>> GetVotos()
