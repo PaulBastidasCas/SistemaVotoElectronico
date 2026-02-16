@@ -2,14 +2,16 @@
 
 @{
     ViewData["Title"] = "Papeleta Electoral";
-    bool esPlancha = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Plancha", StringComparison.OrdinalIgnoreCase);
-    bool esNominal = Model.Eleccion.TipoEleccion != null && Model.Eleccion.TipoEleccion.Equals("Nominal", StringComparison.OrdinalIgnoreCase);
+
+    // CAMBIO 1: Forzamos que ambas sean TRUE para que siempre se muestren los botones
+    bool esPlancha = true;
+    bool esNominal = true;
 }
 
 <div class="container pb-5">
     <div class="text-center mb-4">
         <h2 class="display-4">@Model.Eleccion.Nombre</h2>
-        <p class="text-muted">Modalidad: <strong>@(Model.Eleccion.TipoEleccion ?? "Estándar")</strong></p>
+        <p class="text-muted">Modalidad: <strong>Mixta / Flexible</strong></p>
         <p class="lead">Seleccione su preferencia. Solo puede elegir una opción.</p>
     </div>
 
@@ -29,6 +31,7 @@
                                     <h4 class="mb-0 text-primary">Lista @lista.NumeroLista - @lista.Siglas</h4>
                                     <small>@lista.Nombre</small>
                                 </div>
+
                                 @if (esPlancha)
                                 {
                                     <div class="form-check">
@@ -40,15 +43,20 @@
                                     </div>
                                 }
                             </div>
+
                             <div class="card-body">
                                 <ul class="list-group list-group-flush">
                                     @if (lista.Candidatos != null)
                                     {
                                         var candidatosMostrar = lista.Candidatos.OrderBy(c => c.OrdenEnLista).AsEnumerable();
-                                        if (esNominal)
+
+                                        // CAMBIO 2: Comenté esto. Si lo dejas activo, solo mostrará al primer candidato.
+                                        // Si quieres ver a TODOS los candidatos para votar por ellos individualmente, déjalo comentado.
+                                        /* if (esNominal)
                                         {
-                                            candidatosMostrar = candidatosMostrar.Where(c => c.OrdenEnLista == 1);
+                                        candidatosMostrar = candidatosMostrar.Where(c => c.OrdenEnLista == 1);
                                         }
+                                        */
 
                                         @foreach (var candidato in candidatosMostrar)
                                         {
@@ -63,6 +71,7 @@
                                                         <br><small class="text-muted">Orden: @candidato.OrdenEnLista</small>
                                                     </div>
                                                 </div>
+
                                                 @if (esNominal)
                                                 {
                                                     <div class="form-check">
