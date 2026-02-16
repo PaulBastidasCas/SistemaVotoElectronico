@@ -50,13 +50,7 @@
                                     {
                                         var candidatosMostrar = lista.Candidatos.OrderBy(c => c.OrdenEnLista).AsEnumerable();
 
-                                        // CAMBIO 2: Comenté esto. Si lo dejas activo, solo mostrará al primer candidato.
-                                        // Si quieres ver a TODOS los candidatos para votar por ellos individualmente, déjalo comentado.
-                                        /* if (esNominal)
-                                        {
-                                        candidatosMostrar = candidatosMostrar.Where(c => c.OrdenEnLista == 1);
-                                        }
-                                        */
+                                        
 
                                         @foreach (var candidato in candidatosMostrar)
                                         {
