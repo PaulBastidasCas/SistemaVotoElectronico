@@ -146,11 +146,13 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                // 1. Validar datos requeridos del Request
                 if (request == null || string.IsNullOrEmpty(request.CedulaVotante) || request.EleccionId == 0 || request.MesaId == 0)
                 {
                     return ApiResult<string>.Fail("Datos incompletos.");
                 }
 
+                // 2. Buscar al votante en el padrón electoral según elección y cédula
                 var registro = await _context.PadronElectorales
                     .Include(p => p.Votante)
                     .FirstOrDefaultAsync(p =>
@@ -158,6 +160,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                         p.Votante.Cedula == request.CedulaVotante &&
                         p.EleccionId == request.EleccionId);
 
+                // 3. Validar lógica de negocio electoral
                 if (registro == null)
                     return ApiResult<string>.Fail("Ciudadano no empadronado en esta elección.");
 
@@ -167,11 +170,13 @@ namespace SistemaVotoElectronico.Api.Controllers
                 if (registro.CodigoCanjeado)
                     return ApiResult<string>.Fail("El votante ya ha sufragado.");
 
+                // 4. Generar código alfanumérico seguro para sufragio
                 string caracteres = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
                 Random random = new Random();
                 string nuevoCodigo = new string(Enumerable.Repeat(caracteres, 6)
                     .Select(s => s[random.Next(s.Length)]).ToArray());
 
+                // 5. Asignar código y actualizar registro de padrón
                 registro.CodigoEnlace = nuevoCodigo;
                 registro.FechaGeneracionCodigo = DateTime.Now;
                 await _context.SaveChangesAsync();

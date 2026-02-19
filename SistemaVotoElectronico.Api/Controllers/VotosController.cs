@@ -20,16 +20,19 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost("emitir")]
         public async Task<ActionResult<ApiResult<string>>> EmitirVoto([FromBody] VotoRequest request)
         {
-            Console.WriteLine($"[INICIO] Intentando emitir voto para código: {request.CodigoEnlace}"); 
+            Console.WriteLine($"[INICIO] Intentando emitir voto para código: {request.CodigoEnlace}");
 
+            // 1. Abrir transacción en BD
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // 2. Buscar código electoral en el padrón
                 var registroPadron = await _context.PadronElectorales
                     .Include(p => p.Votante)
                     .Include(p => p.Eleccion)
                     .FirstOrDefaultAsync(p => p.CodigoEnlace == request.CodigoEnlace && p.EleccionId == request.EleccionId);
 
+                // 3. Validar si existe y no fue canjeado antes
                 if (registroPadron == null)
                 {
                     Console.WriteLine("[ERROR] Código no encontrado en BD"); 
@@ -42,6 +45,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     return ApiResult<string>.Fail("Código ya usado.");
                 }
 
+                // 4. Crear instancia del voto (plancha o nominal)
                 var nuevoVoto = new Voto
                 {
                     Id = Guid.NewGuid(),
@@ -51,17 +55,20 @@ namespace SistemaVotoElectronico.Api.Controllers
                     FechaRegistro = DateTime.Now
                 };
 
+                // 5. Añadir voto y "quemar" (invalidar) el código en el padrón
                 _context.Votos.Add(nuevoVoto);
                 registroPadron.CodigoCanjeado = true;
                 registroPadron.FechaVoto = DateTime.Now;
                 registroPadron.VotoPlanchaRealizado = (request.IdListaSeleccionada != null);
                 registroPadron.VotoNominalRealizado = (request.IdCandidatoSeleccionado != null);
 
+                // 6. Confirmar cambios y Commitear transacción
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                Console.WriteLine("[EXITO] Voto guardado en BD. Preparando correo..."); 
+                Console.WriteLine("[EXITO] Voto guardado en BD. Preparando correo...");
 
+                // 7. Lanzar tarea asíncrona de fondo (Fire-and-Forget) para enviar certificado vía Email
                 if (registroPadron.Votante != null && !string.IsNullOrEmpty(registroPadron.Votante.Correo))
                 {
                     Console.WriteLine($"[INFO] Enviando correo a: {registroPadron.Votante.Correo}"); 
@@ -98,6 +105,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
             catch (Exception ex)
             {
+                // 8. Revertir transacción en caso de error
                 await transaction.RollbackAsync();
                 Console.WriteLine($"[CRITICAL] Excepción en transacción: {ex.Message}");
                 return ApiResult<string>.Fail("Error interno.");
@@ -106,15 +114,18 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private async Task EnviarCertificadoPDF(string nombreVotante, string correoDestino, string nombreEleccion, DateTime fecha)
         {
+            // 1. Inicializar Stream de memoria y documento PDF de iText
             using (MemoryStream stream = new MemoryStream())
             {
                 PdfWriter writer = new PdfWriter(stream);
                 PdfDocument pdf = new PdfDocument(writer);
                 Document document = new Document(pdf);
 
+                // 2. Configurar fuentes
                 PdfFont fuenteNegrita = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                 PdfFont fuenteNormal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
+                // 3. Dibujar textos y variables en el PDF
                 document.Add(new Paragraph("CERTIFICADO DE VOTACIÓN DIGITAL")
                     .SetFont(fuenteNegrita)
                     .SetTextAlignment(TextAlignment.CENTER)
@@ -153,11 +164,13 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 document.Close();
 
+                // 4. Convertir documento a array de bytes
                 byte[] bytesPdf = stream.ToArray();
 
                 string miCorreo = "bastidaspaul83@gmail.com";
                 string miPassword = "njkb gyyh qygc wviw";
 
+                // 5. Configurar cliente SMTP y enviar correo con el byte array como adjunto
                 var smtpClient = new SmtpClient("smtp.gmail.com")
                 {
                     Port = 587,
@@ -185,6 +198,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                // 1. Obtener la elección y los votos registrados para la misma
                 var eleccion = await _context.Elecciones.FindAsync(eleccionId);
                 if (eleccion == null) return ApiResult<ResultadoEleccionDto>.Fail("Elección no encontrada");
 
@@ -199,6 +213,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     .Where(l => l.EleccionId == eleccionId)
                     .ToListAsync();
 
+                // 2. Iterar listas y contabilizar votos (plancha o por candidato individual)
                 var resultadosListas = new List<DetalleListaDto>();
                 int totalVotosValidos = 0;
 
@@ -223,11 +238,13 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
+                // 3. Calcular porcentajes totales
                 if (totalVotosValidos > 0)
                 {
                     resultadosListas.ForEach(r => r.Porcentaje = Math.Round(((double)r.VotosTotales / totalVotosValidos) * 100, 2));
                 }
 
+                // 4. Aplicar Método Webster (Cocientes impares 1, 3, 5...) para reparto de escaños
                 var cocientes = new List<dynamic>();
                 foreach (var item in resultadosListas)
                 {
@@ -237,6 +254,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     }
                 }
 
+                // 5. Asignar escaños basados en los cocientes más altos
                 var escanosGanadores = cocientes.OrderByDescending(x => x.Valor).Take(escanosA_Repartir).ToList();
                 foreach (var ganador in escanosGanadores)
                 {
@@ -244,6 +262,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     listaGanadora.EscanosAsignados++;
                 }
 
+                // 6. Generar estructura DTO final
                 var reporte = new ResultadoEleccionDto
                 {
                     Eleccion = eleccion.Nombre,
@@ -265,6 +284,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpGet("reporte-pdf/{eleccionId}")]
         public async Task<IActionResult> GetReportePdf(int eleccionId)
         {
+            // 1. Obtener los resultados matemáticos invocando al método GetResultados
             var actionResult = await GetResultados(eleccionId);
 
             ApiResult<ResultadoEleccionDto> apiResult = actionResult.Value;
@@ -280,12 +300,14 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                 try
                 {
+                    // 2. Iniciar MemoryStream y crear PDF con iText
                     using (MemoryStream stream = new MemoryStream())
                     {
                         PdfWriter writer = new PdfWriter(stream);
                         PdfDocument pdf = new PdfDocument(writer);
                         Document document = new Document(pdf);
 
+                        // 3. Establecer cabeceras del documento
                         PdfFont bold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
                         PdfFont normal = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
 
@@ -300,6 +322,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                         document.Add(new Paragraph("\n"));
 
+                        // 4. Crear estructura de Tabla para los resultados
                         Table table = new Table(UnitValue.CreatePercentArray(new float[] { 4, 2, 2, 2, 2 })).UseAllAvailableWidth();
 
                         table.AddHeaderCell(new Cell().Add(new Paragraph("Organización Política").SetFont(bold).SetFontColor(ColorConstants.WHITE)))
@@ -313,6 +336,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                         table.AddHeaderCell(new Cell().Add(new Paragraph("Escaños").SetFont(bold).SetFontColor(ColorConstants.WHITE)).SetTextAlignment(TextAlignment.CENTER))
                              .SetBackgroundColor(ColorConstants.DARK_GRAY);
 
+                        // 5. Poblar tabla iterando los resultados
                         foreach (var item in data.Resultados)
                         {
                             table.AddCell(new Paragraph(item.Lista).SetFont(normal));
@@ -326,6 +350,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                             table.AddCell(celdaEscanos);
                         }
 
+                        // 6. Renderizar tabla y pie de página en el documento
                         document.Add(table);
 
                         document.Add(new Paragraph("\n"));
@@ -336,6 +361,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
                         document.Close();
 
+                        // 7. Retornar archivo PDF directamente como stream
                         return File(stream.ToArray(), "application/pdf", $"Resultados_{eleccionId}.pdf");
                     }
                 }

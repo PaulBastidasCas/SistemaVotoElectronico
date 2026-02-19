@@ -33,8 +33,9 @@ namespace SistemaVotoElectronico.Api.Controllers
 
             if (!existe) return ApiResult<bool>.Fail("El correo no está registrado.");
 
-            // 2. Generar Token
+            // 2. Generar token alfanumérico de 6 caracteres
             var token = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+            //3.Crear y guardar registro de solicitud de recuperación
             var solicitud = new SolicitudRecuperacion
             {
                 Correo = dto.Correo,
@@ -46,6 +47,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             _context.SolicitudesRecuperacion.Add(solicitud);
             await _context.SaveChangesAsync();
 
+            // 4. Intentar enviar correo; si falla, emitir token por consola
             try
             {
                 await EnviarCorreoAsync(dto.Correo, token);
@@ -66,16 +68,20 @@ namespace SistemaVotoElectronico.Api.Controllers
         [HttpPost("Reset")]
         public async Task<ActionResult<ApiResult<bool>>> CambiarContrasena(ResetPasswordDto dto)
         {
+            // 1. Buscar la última solicitud válida y no usada para el token
             var solicitud = await _context.SolicitudesRecuperacion
                 .OrderByDescending(x => x.Id)
                 .FirstOrDefaultAsync(x => x.Token == dto.Token && !x.Usado);
 
+            // 2. Validar token y tiempo de expiración
             if (solicitud == null) return ApiResult<bool>.Fail("Token inválido o ya utilizado.");
             if (solicitud.Expiracion < DateTime.UtcNow) return ApiResult<bool>.Fail("El token ha expirado.");
 
+            // 3. Hashear la nueva contraseña
             string passHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContrasena);
             bool actualizado = false;
 
+            // 4. Buscar secuencialmente en las entidades de usuarios y actualizar si se encuentra
             var admin = await _context.Administradores.FirstOrDefaultAsync(x => x.Correo == solicitud.Correo);
             if (admin != null) { admin.Contrasena = passHash; actualizado = true; }
 
@@ -97,6 +103,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 if (votante != null) { votante.Contrasena = passHash; actualizado = true; }
             }
 
+            // 5. Marcar token como usado y confirmar guardado
             if (actualizado)
             {
                 solicitud.Usado = true;
@@ -109,6 +116,7 @@ namespace SistemaVotoElectronico.Api.Controllers
 
         private async Task EnviarCorreoAsync(string destino, string token)
         {
+            // 1. Configurar cliente SMTP de Gmail
             var cliente = new SmtpClient("smtp.gmail.com", 587)
             {
                 EnableSsl = true,
@@ -117,6 +125,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                 Timeout = 5000 
             };
 
+            // 2. Construir mensaje y enviar
             var mensaje = new MailMessage(SmtpCorreo, destino, "Recuperación de Contraseña",
                 $"Token: {token}");
 

@@ -22,7 +22,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
-                // 1. Verificar Admin
+                // 1. Verificar si el usuario es Administrador (Match de correo y Hash)
                 var admin = await _context.Administradores.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (admin != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, admin.Contrasena))
                 {
@@ -35,7 +35,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
-                // 2. Verificar Jefe de Mesa
+                // 2. Verificar si el usuario es Jefe de Mesa
                 var jefe = await _context.JefesDeMesa.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (jefe != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, jefe.Contrasena))
                 {
@@ -48,7 +48,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
-                // 3. Verificar Candidato
+                // 3. Verificar si el usuario es Candidato
                 var candidato = await _context.Candidatos.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (candidato != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, candidato.Contrasena))
                 {
@@ -61,7 +61,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
-                // 4. Verificar Votante
+                // 4. Verificar si el usuario es Votante
                 var votante = await _context.Votantes.FirstOrDefaultAsync(x => x.Correo == login.Correo);
                 if (votante != null && BCrypt.Net.BCrypt.Verify(login.Contrasena, votante.Contrasena))
                 {
@@ -74,6 +74,7 @@ namespace SistemaVotoElectronico.Api.Controllers
                     });
                 }
 
+                // 5. Fallo por credenciales incorrectas
                 return ApiResult<LoginResponseDto>.Fail("Usuario o contraseña incorrectos");
             }
             catch (Exception ex)

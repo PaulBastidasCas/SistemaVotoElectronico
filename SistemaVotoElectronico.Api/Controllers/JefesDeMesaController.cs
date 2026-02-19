@@ -29,6 +29,7 @@ namespace SistemaVotoElectronico.Api.Controllers
         {
             try
             {
+                // 1. Extraer jefes de mesa incluyendo datos de la mesa asignada (AsNoTracking para rendimiento de lectura)
                 var data = await _context
                     .JefesDeMesa
                     .AsNoTracking()
@@ -39,6 +40,7 @@ namespace SistemaVotoElectronico.Api.Controllers
             }
             catch (Exception ex)
             {
+                // 2. Manejo de errores
                 Log.Information(ex.Message);
                 return ApiResult<List<JefeDeMesa>>.Fail(ex.Message);
             }
